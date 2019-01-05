@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="top"
+    android:orientation="vertical" >
+    <TextView
+        android:id="@+id/titulo"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="#000000"
+        android:gravity="center"
+        android:text="Bibliotecuran"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="#DC143C"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/descricao"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="#DCDCDC"
+        android:gravity="center"
+        android:text="Listagem de Livros:"
+        android:textColor="#DC143C"
+        android:textStyle="bold" />
+    <ListView
+        android:id="@+id/list_view"
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center" />
+</LinearLayout>
