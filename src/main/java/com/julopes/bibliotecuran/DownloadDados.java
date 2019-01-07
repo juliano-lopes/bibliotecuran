@@ -28,6 +28,9 @@ import android.webkit.WebView;
 
 import android.widget.Toast;
 import android.content.Intent;
+import com.julopes.bibliotecuran.AudioBookConverter;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
 
 public class DownloadDados extends AsyncTask<Void, Void, String> {
 private Context context;
@@ -35,11 +38,13 @@ private Context context;
 private ListView listView;
 private String url;
 private String book;
+private TextToSpeech mTts;
 public DownloadDados(Context context, ListView listView){
 this.context = context;
 this.listView = listView;
 this.url = "http://julianolopes.com.br/api_android/android_request.php?id=com.julopes.bibliotecuran&list_book=true";
 this.book = "";
+//this.mTts = mTts;
 }
 
 public DownloadDados(Context context, String book, String url){
@@ -47,12 +52,11 @@ this.context = context;
 this.url = url;
 this.book = book;
 this.listView = null;
-
+//this.mTts= mTts;
 }
 
 	@Override
 	protected String doInBackground(Void... params) {
-
 		HttpURLConnection urlConnection = null;
 		BufferedReader reader = null;
 		try {
@@ -103,7 +107,6 @@ loadList(data);
 
 	}
 public void loadBook(String data){
-
 Intent intent = new Intent(context, SpeakOutActivity.class);
 intent.putExtra("bookName", book);
 intent.putExtra("book", data);

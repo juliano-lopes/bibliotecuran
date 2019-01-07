@@ -44,12 +44,18 @@ import android.widget.Toast;
 import android.view.View.OnClickListener;
   import java.io.File;
 import android.support.v4.content.FileProvider;
-public class SpeakOutActivity extends Activity {
+import android.media.*;
+import android.content.res.*;
+import com.julopes.bibliotecuran.AudioBookConverter;
+public class SpeakOutActivity extends Activity implements TextToSpeech.OnInitListener {
 
 	private Uri caminhoArmazenar;
 	private static final String TALKBACK_SETTING_ACTIVITY_NAME = "com.android.talkback.TalkBackPreferencesActivity";
+        private TextToSpeech mTts;
     private int mStatus = 0;
     private MediaPlayer mMediaPlayer;
+AssetManager assets;
+AssetFileDescriptor fd;
     private boolean mProcessed = false;
     private final String FILENAME = "wpta_tts.wav";
     
@@ -61,7 +67,7 @@ public class SpeakOutActivity extends Activity {
     private String bookName;
 private String book;
 private List<String> bookLines;
-private List<String> bookAudioLines;
+private List<String> audioBookLines;
 private int atualLine;
 private int indexCreator;
 private static final int QUANTITY_TO_BE_CREATED=5;
@@ -69,6 +75,7 @@ private boolean read;
 private String url;
 private HashMap<String, String> myHashRender;
 private boolean bookCreated;
+private AudioBookConverter converter;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,49 +91,54 @@ Intent intent = getIntent();
 Bundle extras = intent.getExtras();
 bookName = extras.getString("bookName");
 book = extras.getString("book");
-bookLines = Arrays.asList(book.split("\n"));
-bookAudioLines = new ArrayList<>();
+audioBookLines = new ArrayList<>();
+converter = new AudioBookConverter(this, bookName, book);
+bookLines = converter.getBookContentWithFormatedLines();
 atualLine=0;
 indexCreator=0;
 bookCreated=false;        
 mMediaPlayer = new MediaPlayer();
-btnSpeak.setText("Carregar Livro");
+assets = this.getAssets();
+btnSpeak.setText("Ler");
+btnSpeak.setEnabled(false);
 //btnAvancar.setEnabled(false);
 	//btnRetroceder.setEnabled(false);
-			
+
+mTts = new TextToSpeech(this, this);
+if(bookLines.size()>0){
+}
+else{
+	textView.setText("o texto que veio foi: vazio");
+}
 	}
 @Override
 public void onStart() {
+
 		// Defining click event listener for the button btn_speak
         OnClickListener btnClickListener = new OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                if(!bookCreated){
-				return;
-				}				
-						
                     if(mMediaPlayer != null && mMediaPlayer.isPlaying()){
                         playMediaPlayer(1);
                         btnSpeak.setText("Ler");
-                        return;
                     }
 					else{
 						btnSpeak.setText("Parar Leitura");
-						initializeMediaPlayer(atualLine);
-				playMediaPlayer(0);
+								mMediaPlayer.reset();
+initializeMediaPlayer(atualLine);
+playMediaPlayer(0);
 					               }
+
+
 			}
 };
         btnSpeak.setOnClickListener(btnClickListener);
         OnCompletionListener mediaPlayerCompletionListener = new OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-//                mMediaPlayer.reset();
-//								initializeMediaPlayer(avancar());
-//				playMediaPlayer(0);
-String msg="O tamanho da linha: "+bookLines.get(atualLine).length();
-//		mTts.speak(msg,TextToSpeech.QUEUE_FLUSH,null);
+                mMediaPlayer.reset();
+								initializeMediaPlayer(avancar());
+				playMediaPlayer(0);
                             }
         };
 mMediaPlayer.setOnCompletionListener(mediaPlayerCompletionListener);	
@@ -166,7 +178,7 @@ super.onStart();
 		super.onDestroy();
     }
     private int avancar(){
-		if(atualLine<bookAudioLines.size()){
+		if(atualLine<audioBookLines.size()){
 atualLine++;
 		}
 		return atualLine;
@@ -179,36 +191,36 @@ atualLine++;
 		return atualLine;
 	}
 
-    private void initializeMediaPlayer(int bookAudioLine){
+    private void initializeMediaPlayer(int audioBookLine){
  	Uri uri;
-	if(bookAudioLines.size()>0){
-if(atualLine==bookAudioLines.size()){	
-btnSpeak.setText("Ler");
-}
-else{
-		uri = Uri.parse("file://"+bookAudioLines.get(bookAudioLine));
-
+	if(audioBookLines.size()>0){
+if(atualLine<audioBookLines.size()){
+		uri = Uri.parse("file://"+audioBookLines.get(audioBookLine));
 		mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         try {
             mMediaPlayer.setDataSource(getApplicationContext(), uri);
             mMediaPlayer.prepare();
-			//Toast.makeText(getApplicationContext(),"aqui fica a preparacao doplayer", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
-		//Toast.makeText(getApplicationContext(),"aqui fica o erro da preparacao do player", Toast.LENGTH_SHORT).show();
-//	mTts.speak(e.getMessage(),TextToSpeech.QUEUE_FLUSH,null);
-		textView.setText(e.getMessage());
-            e.printStackTrace();
+		textView.setText("Erro ao tentar preparar o livro. Tente carregar novamente...");
+                        btnSpeak.setText("Ler");
+atualLine=0;
+//            e.printStackTrace();
         }
 }
 	}else{
 //mTts.speak("Erro ao carregar  audio livro...",TextToSpeech.QUEUE_FLUSH,null);
+		Toast.makeText(getApplicationContext(),"Erro ao carregar o livro. Por favor, tente novamente...", Toast.LENGTH_SHORT).show();
+		textView.setText("Erro ao tentar reproduzir o livro. Nenhuma linha em audio. Tente carregar novamente...");
 	}
 		
     }
     private void playMediaPlayer(int status){
+if(atualLine==(indexCreator-2))
+convert(indexCreator);
+
         // Start Playing
         if(status==0){
-            if(atualLine<bookAudioLines.size())
+            if(atualLine<audioBookLines.size())
 			mMediaPlayer.start();
         }
         // Pause Playing
@@ -216,4 +228,100 @@ else{
             mMediaPlayer.pause();
         }
     }
+
+public void convert(int i){
+if(i<bookLines.size()){
+			 String musicName = "book_line_"+i+".wav";
+					 File appTmpPath = new File(getApplicationContext().getFilesDir(), musicName);
+					 String tempDestFile = appTmpPath.getAbsolutePath();
+String utteranceCode = tempDestFile+i;
+HashMap<String, String> myHashRender = new HashMap();
+myHashRender.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceCode);
+
+int status = mTts.synthesizeToFile(bookLines.get(i), myHashRender, tempDestFile);
+if(status==TextToSpeech.SUCCESS){
+	//audioBookLines.add(tempDestFile);
+}
+													
+
+/*
+	btnSpeak.post(new Runnable(){
+	public void run(){
+		btnSpeak.setText("Ler");
+	}
+});
+*/
+	}
+}
+    public void setTts(TextToSpeech tts) {
+        this.mTts = tts;
+        if( Build.VERSION.SDK_INT  >= 15 ){
+            this.mTts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                @Override
+                public void onDone(String utteranceId){
+int index = Character.getNumericValue(utteranceId.charAt(utteranceId.length()-1));
+String audioPath=utteranceId.substring(0, utteranceId.length()-1);
+if(!audioBookLines.contains(audioPath)){
+audioBookLines.add(index, audioPath);
+}
+if(indexCreator<(atualLine+5)){
+convert(++indexCreator);
+}else{
+btnSpeak.setEnabled(true);
+textView.setText("Creator "+indexCreator);
+}
+
+//	textView.setText("o texto do done, id "+utteranceId);
+                }
+                @Override
+                public void onError(String utteranceId){
+	textView.setText("o texto do error, id "+utteranceId);
+				}
+@Override
+public void onStop(String utteranceId, boolean interrupted){
+if(interrupted){
+int index = Character.getNumericValue(utteranceId.charAt(utteranceId.length()-1));
+convert(index);
+	textView.setText("A linha "+utteranceId+" foi interrompida...");
+}
+}
+                @Override
+                public void onStart(String utteranceId){
+                }
+            });
+        }else{
+            this.mTts.setOnUtteranceCompletedListener(new OnUtteranceCompletedListener() {
+                @Override
+                public void onUtteranceCompleted(String utteranceId) {
+                    // Speech file is created
+	textView.setText("o texto do completed, id "+utteranceId);
+					
+                }
+            });
+        }
+    }
+
+	    @Override
+    public void onInit(int status) {
+        mStatus = status;
+		if(success()){
+			    int result = mTts.setLanguage(Locale.getDefault());
+            mTts.setPitch(5); // set pitch level
+             mTts.setSpeechRate(0); // set speech speed rate
+            if (result == TextToSpeech.LANG_MISSING_DATA
+                    || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e("TTS", "Language is not supported");
+            } else {
+//                btnSpeak.setEnabled(true);
+            }
+        
+		}
+        setTts(mTts);
+convert(indexCreator);
+    }
+
+	private boolean success(){
+		return mStatus==TextToSpeech.SUCCESS;
+	}
+
 }
