@@ -107,7 +107,7 @@ loadList(data);
 
 	}
 public void loadBook(String data){
-Intent intent = new Intent(context, SpeakOutActivity.class);
+Intent intent = new Intent(context, LoadingActivity.class);
 intent.putExtra("bookName", book);
 intent.putExtra("book", data);
 context.startActivity(intent);

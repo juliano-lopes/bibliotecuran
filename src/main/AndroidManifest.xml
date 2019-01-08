@@ -44,6 +44,12 @@ android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         
 </activity>
+<activity
+android:name=".activity.LoadingActivity">
+</activity>
+
+    
+
 <activity
 android:name=".SpeakOutActivity"
 android:parentActivityName=".MainActivity" >
