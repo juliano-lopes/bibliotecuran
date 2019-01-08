@@ -76,6 +76,14 @@ private String url;
 private HashMap<String, String> myHashRender;
 private boolean bookCreated;
 private AudioBookConverter converter;
+private AudioManager am;
+ private final AudioManager.OnAudioFocusChangeListener afl = new AudioManager.OnAudioFocusChangeListener() {
+        @Override
+        public void onAudioFocusChange(int focusChange) {
+            // TODO React to audio-focus changes here!
+        }
+    };
+   
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -103,7 +111,8 @@ btnSpeak.setText("Ler");
 btnSpeak.setEnabled(false);
 //btnAvancar.setEnabled(false);
 	//btnRetroceder.setEnabled(false);
-
+am = (AudioManager) getApplicationContext().getSystemService(getApplicationContext().AUDIO_SERVICE);
+        
 mTts = new TextToSpeech(this, this);
 if(bookLines.size()>0){
 }
@@ -267,7 +276,8 @@ audioBookLines.add(index, audioPath);
 if(indexCreator<(atualLine+5)){
 convert(++indexCreator);
 }else{
-btnSpeak.setEnabled(true);
+	am.abandonAudioFocus(afl);
+        btnSpeak.setEnabled(true);
 textView.setText("Creator "+indexCreator);
 }
 
@@ -317,7 +327,10 @@ convert(index);
         
 		}
         setTts(mTts);
+		int focus_res = am.requestAudioFocus(afl, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE);
+        if (focus_res == AudioManager.AUDIOFOCUS_REQUEST_GRANTED){
 convert(indexCreator);
+		}
     }
 
 	private boolean success(){
