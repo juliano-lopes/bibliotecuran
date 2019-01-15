@@ -31,6 +31,9 @@ import android.content.Intent;
 import com.julopes.bibliotecuran.AudioBookConverter;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
+import com.julopes.bibliotecuran.LoadingActivity;
+import java.io.File;
+import java.io.FileOutputStream;
 
 public class DownloadDados extends AsyncTask<Void, Void, String> {
 private Context context;
@@ -39,6 +42,7 @@ private ListView listView;
 private String url;
 private String book;
 private TextToSpeech mTts;
+    private static final int BUFFER_SIZE = 4096;
 public DownloadDados(Context context, ListView listView){
 this.context = context;
 this.listView = listView;
@@ -49,7 +53,7 @@ this.book = "";
 
 public DownloadDados(Context context, String book, String url){
 this.context = context;
-this.url = url;
+this.url = "http://www.julianolopes.com.br/documentos/index.php?file=Que%20Amor%20Bonito%20-%20Thiago%20Grulha.mp3";
 this.book = book;
 this.listView = null;
 //this.mTts= mTts;
@@ -57,6 +61,63 @@ this.listView = null;
 
 	@Override
 	protected String doInBackground(Void... params) {
+if(this.url.equals("http://www.julianolopes.com.br/documentos/index.php?file=Que%20Amor%20Bonito%20-%20Thiago%20Grulha.mp3")){
+return "tirei";
+	/*
+String fileURL=this.url;
+String saveFilePath="nada aconteceu";
+					 File appTmpPath = new File(context.getFilesDir(), "");
+		 String saveDir = appTmpPath.getAbsolutePath();
+try {
+        URL url = new URL(fileURL);
+        HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+        int responseCode = httpConn.getResponseCode();
+        // always check HTTP response code first
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+            String fileName = "";
+            String disposition = httpConn.getHeaderField("Content-Disposition");
+            String contentType = httpConn.getContentType();
+            int contentLength = httpConn.getContentLength();
+            if (disposition != null) {
+                // extracts file name from header field
+                int index = disposition.indexOf("filename=");
+                if (index > 0) {
+                    fileName = disposition.substring(index + 10,
+                            disposition.length() - 1);
+                }
+            
+			}			else {
+                // extracts file name from URL
+                fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1,
+                        fileURL.length());
+            }
+            //System.out.println("Content-Type = " + contentType);
+            //System.out.println("Content-Disposition = " + disposition);
+            //System.out.println("Content-Length = " + contentLength);
+            //System.out.println("fileName = " + fileName);
+            // opens input stream from the HTTP connection
+            InputStream inputStream = httpConn.getInputStream();
+             saveFilePath = saveDir + File.separator + fileName;
+            // opens an output stream to save into file
+            FileOutputStream outputStream = new FileOutputStream(saveFilePath);
+            int bytesRead = -1;
+            byte[] buffer = new byte[BUFFER_SIZE];
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            outputStream.close();
+            inputStream.close();
+            //System.out.println("File downloaded");
+        } else {
+            //System.out.println("No file to download. Server replied HTTP code: " + responseCode);
+        }
+        httpConn.disconnect();
+		return saveFilePath;
+}catch(Exception ex){
+	return ex.getMessage();
+}
+*/
+}else{	
 		HttpURLConnection urlConnection = null;
 		BufferedReader reader = null;
 		try {
@@ -93,6 +154,8 @@ this.listView = null;
 		}
 
 		return null;
+		
+}
 	}
 
 	@Override
@@ -107,7 +170,7 @@ loadList(data);
 
 	}
 public void loadBook(String data){
-Intent intent = new Intent(context, LoadingActivity.class);
+Intent intent = new Intent(context, SpeakOutActivity.class);
 intent.putExtra("bookName", book);
 intent.putExtra("book", data);
 context.startActivity(intent);
