@@ -61,64 +61,7 @@ this.listView = null;
 
 	@Override
 	protected String doInBackground(Void... params) {
-if(this.url.equals("http://www.julianolopes.com.br/documentos/index.php?file=Que%20Amor%20Bonito%20-%20Thiago%20Grulha.mp3")){
-return "tirei";
-	/*
-String fileURL=this.url;
-String saveFilePath="nada aconteceu";
-					 File appTmpPath = new File(context.getFilesDir(), "");
-		 String saveDir = appTmpPath.getAbsolutePath();
-try {
-        URL url = new URL(fileURL);
-        HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
-        int responseCode = httpConn.getResponseCode();
-        // always check HTTP response code first
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            String fileName = "";
-            String disposition = httpConn.getHeaderField("Content-Disposition");
-            String contentType = httpConn.getContentType();
-            int contentLength = httpConn.getContentLength();
-            if (disposition != null) {
-                // extracts file name from header field
-                int index = disposition.indexOf("filename=");
-                if (index > 0) {
-                    fileName = disposition.substring(index + 10,
-                            disposition.length() - 1);
-                }
-            
-			}			else {
-                // extracts file name from URL
-                fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1,
-                        fileURL.length());
-            }
-            //System.out.println("Content-Type = " + contentType);
-            //System.out.println("Content-Disposition = " + disposition);
-            //System.out.println("Content-Length = " + contentLength);
-            //System.out.println("fileName = " + fileName);
-            // opens input stream from the HTTP connection
-            InputStream inputStream = httpConn.getInputStream();
-             saveFilePath = saveDir + File.separator + fileName;
-            // opens an output stream to save into file
-            FileOutputStream outputStream = new FileOutputStream(saveFilePath);
-            int bytesRead = -1;
-            byte[] buffer = new byte[BUFFER_SIZE];
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-            outputStream.close();
-            inputStream.close();
-            //System.out.println("File downloaded");
-        } else {
-            //System.out.println("No file to download. Server replied HTTP code: " + responseCode);
-        }
-        httpConn.disconnect();
-		return saveFilePath;
-}catch(Exception ex){
-	return ex.getMessage();
-}
-*/
-}else{	
-		HttpURLConnection urlConnection = null;
+HttpURLConnection urlConnection = null;
 		BufferedReader reader = null;
 		try {
 			URL url = new URL(this.url);
@@ -155,7 +98,7 @@ try {
 
 		return null;
 		
-}
+
 	}
 
 	@Override
@@ -188,15 +131,12 @@ String bookName, msg;
 bookName = parent.getItemAtPosition(position).toString();
 msg="Carregando Livro...";
 Toast.makeText(context.getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
-/*
+bookName+=".mp3";
+String audioBookUrl = "http://julianolopes.com.br/api_android/library/audiobook/"+bookName;
 Intent intent = new Intent(context, SpeakOutActivity.class);
 intent.putExtra("bookName", bookName);
-intent.putExtra("book", book);
+intent.putExtra("book", audioBookUrl);
 context.startActivity(intent);
-*/
-String newUrl = "http://julianolopes.com.br/api_android/android_request.php?id=com.julopes.bibliotecuran&book="+bookName;
-new DownloadDados(context, bookName, newUrl).execute();
-
 
 }
 });
