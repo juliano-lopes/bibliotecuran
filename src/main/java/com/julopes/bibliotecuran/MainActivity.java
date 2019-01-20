@@ -25,7 +25,9 @@ import android.speech.tts.UtteranceProgressListener;
 import android.os.Build;
 import java.util.Locale;
 import android.util.Log;
- 
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo; 
+import android.content.Context;
 public class MainActivity extends Activity {
 
 
@@ -41,31 +43,36 @@ private TextView descricao;
 public void onCreate(Bundle savedInstanceState) {
         
 super.onCreate(savedInstanceState);
-        
+if(isConnected(this)){
 setContentView(R.layout.main_listview_layout);
 titulo = (TextView) findViewById(R.id.titulo);
 descricao = (TextView) findViewById(R.id.descricao);
 listView = (ListView) findViewById(R.id.list_view);
-//WebSettings webSettings = webView.getSettings();
-//webSettings.setJavaScriptEnabled(true);
-//mTts = new TextToSpeech(this, this);
-DownloadDados dd = new DownloadDados(this, listView);
-dd.execute();
-
-
+new DownloadDados(this, listView).execute();
 }
-
-
-    
+else{
+	setContentView(R.layout.activity_main_without_internet);
+//Toast.makeText(this, "Ops! Estamos sem internet no momento...", Toast.LENGTH_SHORT).show();
+}	
+}
 @Override
-    
 public void onStart() {
-        
 super.onStart();
-        
 }
+private   boolean isConnected(Context cont){
+ ConnectivityManager conmag = (ConnectivityManager) cont.getSystemService(cont.CONNECTIVITY_SERVICE);
 
-
-
-
+ if ( conmag != null ) {
+  conmag.getActiveNetworkInfo();
+  //Verifica internet pela WIFI
+  if (conmag.getNetworkInfo(ConnectivityManager.TYPE_WIFI).isConnected()) {
+   return true;
+  }
+  //Verifica se tem internet móvel
+  if (conmag.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).isConnected()) {
+   return true;
+  }
+ }
+ return false;
+}
 }
