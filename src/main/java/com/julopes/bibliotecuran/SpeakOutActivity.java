@@ -38,6 +38,7 @@ import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
 import android.os.Environment;
 import android.net.Uri;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.media.MediaPlayer.OnPreparedListener;
 import android.media.MediaPlayer;
 import android.annotation.TargetApi;
 import java.util.HashMap;
@@ -54,14 +55,18 @@ import android.content.BroadcastReceiver;
 public class SpeakOutActivity extends Activity {
     private MediaPlayer mMediaPlayer;
 private TextView textView;
+	private Button btnLerOnline;
 	private Button btnSpeak;
 	    private Button btnGoAhead;
 			    private Button btnGoBack;
 	private String audioBookName;
-private String book;
+private String audioBookUrl;
      private long downloadID;  
    private String path;
-     private BroadcastReceiver onDownloadComplete = new BroadcastReceiver() {  
+   private static final int OFFLINE=0;
+      private static final int ONLINE=1;
+	        private static final int ONLINE_ASYNC=2;
+	private BroadcastReceiver onDownloadComplete = new BroadcastReceiver() {  
          @Override  
          public void onReceive(Context context, Intent intent) {  
    
@@ -70,9 +75,10 @@ private String book;
    
              //Checking if the received broadcast is for our enqueued download by matching download id  
              if (downloadID == id) {  
-                 //Toast.makeText(SpeakOutActivity.this, "Download Completed", Toast.LENGTH_SHORT).show();  
-             //initializeMediaPlayer(getAudioBookPath(audioBookName));
+                 Toast.makeText(SpeakOutActivity.this, "Livro baixado com sucesso", Toast.LENGTH_SHORT).show();  
+             			initializeMediaPlayer(getAudioBookPath(audioBookName), OFFLINE);
 			 btnSpeak.setEnabled(true);
+			 btnSpeak.setText("Ler Offline");
 			 textView.setText("");
 			 }  
    
@@ -83,36 +89,65 @@ private String book;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.speak_out_activity);
 		textView  = (TextView) findViewById(R.id.text_view);
+		btnLerOnline = (Button) findViewById(R.id.btn_ler_online);
 		btnSpeak = (Button) findViewById(R.id.btn_speak);
         btnGoAhead = (Button) findViewById(R.id.btn_avancar);
 		btnGoBack = (Button) findViewById(R.id.btn_retroceder);
 Intent intent = getIntent();
 Bundle extras = intent.getExtras();
 audioBookName = extras.getString("bookName");
-book = extras.getString("book");
+audioBookUrl = extras.getString("book");
 mMediaPlayer = new MediaPlayer();
-btnSpeak.setText("Ler");
+btnSpeak.setText("Baixar e Ler Offline");
 btnGoAhead.setEnabled(false);
 	btnGoBack.setEnabled(false);
-       registerReceiver(onDownloadComplete,new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));  
-		 beginDownload(audioBookName, book);
-
+       registerReceiver(onDownloadComplete,new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+	   if(!audioBookExists(getAudioBookPath(audioBookName))){
+	   initializeMediaPlayer(audioBookUrl, ONLINE_ASYNC);
+	   }
+		 	if(audioBookExists(getAudioBookPath(audioBookName))){
+			initializeMediaPlayer(getAudioBookPath(audioBookName), OFFLINE);
+btnSpeak.setText("Ler Offline");
+btnLerOnline.setEnabled(false);
+			}
 	}
 @Override
 public void onStart() {
 super.onStart();
-		OnClickListener btnSpeakClickListener = new OnClickListener() {
+OnClickListener btnLerOnlineClickListener = new OnClickListener() {
             @Override
             public void onClick(View v) {
 				btnGoAhead.setEnabled(true);
 			 btnGoBack.setEnabled(true);
 			 if(mMediaPlayer != null && mMediaPlayer.isPlaying()){
                         playMediaPlayer(1);
-                        btnSpeak.setText("Ler");
+                        btnLerOnline.setText("Ler Online");
                     }
 					else{
-		 initializeMediaPlayer(getAudioBookPath(audioBookName));
-						playMediaPlayer(0);
+		 playMediaPlayer(0);
+			btnLerOnline.setText("Parar Leitura Online");
+	
+		 					               }
+}
+};
+        btnLerOnline.setOnClickListener(btnLerOnlineClickListener);
+		
+		OnClickListener btnSpeakClickListener = new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+if(!audioBookExists(getAudioBookPath(audioBookName))){
+			beginDownload(audioBookName, audioBookUrl);
+			return;
+}
+			 				btnGoAhead.setEnabled(true);
+			 btnGoBack.setEnabled(true);
+			 
+			 if(mMediaPlayer != null && mMediaPlayer.isPlaying()){
+                        playMediaPlayer(1);
+                        btnSpeak.setText("Ler Offline");
+                    }
+					else{
+												playMediaPlayer(0);
 												btnSpeak.setText("Parar Leitura");
 					               }
 }
@@ -138,7 +173,7 @@ if((mMediaPlayer.getCurrentPosition()-5000)>0)
 }
 };
         btnGoBack.setOnClickListener(btnGoBackClickListener);
-        
+
         OnCompletionListener mediaPlayerCompletionListener = new OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
@@ -155,19 +190,44 @@ mMediaPlayer.setOnCompletionListener(mediaPlayerCompletionListener);
         mMediaPlayer.release();
 	}
 
-    private void initializeMediaPlayer(String audioBookPath){
- 	Uri uri = Uri.parse("file://"+audioBookPath);
-		mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+    private void initializeMediaPlayer(String audioBookPath, int REPRODUTION_MODE){
+ 	switch(REPRODUTION_MODE){
+	case OFFLINE:
+	Uri uri = Uri.parse("file://"+audioBookPath);
+			mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         try {
             mMediaPlayer.setDataSource(getApplicationContext(), uri);
             mMediaPlayer.prepare();
         } catch (Exception e) {
-		textView.setText("Erro ao tentar preparar o livro. Tente carregar novamente...");
+		textView.setText("Erro ao tentar preparar o livro. Tente carregar novamente..."+e.getMessage());
                         btnSpeak.setText("Ler");
 //            e.printStackTrace();
 }
+	break;
+	case ONLINE_ASYNC:
+		btnLerOnline.setEnabled(false);
+		
+						mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        try {
+            mMediaPlayer.setDataSource(audioBookPath);
+			    mMediaPlayer.setOnPreparedListener(new OnPreparedListener(){
+@Override
+    public void onPrepared(MediaPlayer mp) {
+		btnLerOnline.setEnabled(true);
+	}
+});
+		mMediaPlayer.prepareAsync();
+	} catch (Exception e) {
+		textView.setText("Erro ao tentar preparar a leitura online. Tente carregar novamente..."+e.getMessage());
+                        btnSpeak.setText("Ler");
+//            e.printStackTrace();
+}
+        break;
+	}
     }
-    private void playMediaPlayer(int status){
+    
+	
+	private void playMediaPlayer(int status){
 		if(status==0){
             mMediaPlayer.start();
         }
@@ -178,7 +238,8 @@ mMediaPlayer.setOnCompletionListener(mediaPlayerCompletionListener);
 private void beginDownload(String audioBookName, String audioBookUrl){  
 		 if(!audioBookExists(getAudioBookPath(audioBookName))){
          btnSpeak.setEnabled(false);
-		 textView.setText("Carregando livro, por favor aguarde...");
+		 btnSpeak.setText("Baixando...");
+		 textView.setText("Baixando livro, por favor aguarde...");
 		 /*  
          Create a DownloadManager.Request with all the information necessary to start the download  
           */  

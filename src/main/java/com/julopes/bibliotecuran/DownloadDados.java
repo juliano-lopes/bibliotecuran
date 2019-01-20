@@ -129,7 +129,7 @@ public void onItemClick(AdapterView<?> parent, View view,
 int position, long id) {
 String bookName, msg;
 bookName = parent.getItemAtPosition(position).toString();
-msg="Carregando Livro...";
+msg="Buscando Livro...";
 Toast.makeText(context.getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
 bookName+=".mp3";
 String audioBookUrl = "http://julianolopes.com.br/api_android/library/audiobook/"+bookName;
