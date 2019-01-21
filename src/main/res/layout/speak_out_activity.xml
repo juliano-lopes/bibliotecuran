@@ -20,14 +20,6 @@ android:text="Ler Online"/>
 
 <Button  
 
-    android:id="@+id/btn_speak"
-    
-android:layout_width="fill_parent" 
-
-    android:layout_height="wrap_content" 
-android:text="Ler"/>
-<Button  
-
     android:id="@+id/btn_avancar"
     
 android:layout_width="fill_parent" 
