@@ -48,11 +48,9 @@ import android.view.View.OnClickListener;
 import android.support.v4.content.FileProvider;
 import android.media.*;
 import android.content.res.*;
-import com.julopes.bibliotecuran.AudioBookConverter;
-import com.julopes.bibliotecuran.HttpDownloadUtility;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
-public class SpeakOutActivity extends Activity {
+public class ReadBookActivity extends Activity {
     private MediaPlayer mMediaPlayer;
 private TextView textView;
 	private Button btnRead;
@@ -60,23 +58,22 @@ private TextView textView;
 			    private Button btnGoBack;
 	private String audioBookName;
 private String audioBookUrl;
-     private long downloadID;  
-   private String path;
+private static final String AUDIO_BOOK_DIRECTORY = "AudioBooks";
    private static final int OFFLINE=0;
       private static final int ONLINE=1;
 	        private static final int ONLINE_ASYNC=2;
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.speak_out_activity);
+        setContentView(R.layout.read_book_activity);
 		textView  = (TextView) findViewById(R.id.text_view);
 		btnRead = (Button) findViewById(R.id.btn_ler_online);
 		btnGoAhead = (Button) findViewById(R.id.btn_avancar);
 		btnGoBack = (Button) findViewById(R.id.btn_retroceder);
 Intent intent = getIntent();
 Bundle extras = intent.getExtras();
-audioBookName = extras.getString("bookName");
-audioBookUrl = extras.getString("book");
+audioBookName = extras.getString("audio_book_name");
+audioBookUrl = extras.getString("audio_book_url");
 mMediaPlayer = new MediaPlayer();
 btnGoAhead.setEnabled(false);
 	btnGoBack.setEnabled(false);
@@ -184,8 +181,8 @@ mMediaPlayer.setOnCompletionListener(mediaPlayerCompletionListener);
         }
     }
 private String getAudioBookPath(String audioBookName){
-	            File file=new File(getExternalFilesDir(null),"AudioBooks");
-		path = file.getAbsolutePath()+"/"+audioBookName;
+	            File file=new File(getExternalFilesDir(null),AUDIO_BOOK_DIRECTORY);
+		String path = file.getAbsolutePath()+"/"+audioBookName;
 return path;
 	}
 		 private boolean audioBookExists(String audioBookPath){

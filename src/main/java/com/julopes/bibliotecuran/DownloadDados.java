@@ -28,37 +28,24 @@ import android.webkit.WebView;
 
 import android.widget.Toast;
 import android.content.Intent;
-import com.julopes.bibliotecuran.AudioBookConverter;
+
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
-import com.julopes.bibliotecuran.LoadingActivity;
+
 import java.io.File;
 import java.io.FileOutputStream;
 
 public class DownloadDados extends AsyncTask<Void, Void, String> {
 private Context context;
-//private TextView textView;
 private ListView listView;
 private String url;
-private String book;
-private TextToSpeech mTts;
-    private static final int BUFFER_SIZE = 4096;
+private static final String AUDIO_BOOK_URL = "http://julianolopes.com.br/api_android/library/audiobook/";
+private static final String AUDIO_BOOK_FORMATE = ".mp3";
 public DownloadDados(Context context, ListView listView){
 this.context = context;
 this.listView = listView;
 this.url = "http://julianolopes.com.br/api_android/android_request.php?id=com.julopes.bibliotecuran&list_book=true";
-this.book = "";
-//this.mTts = mTts;
 }
-
-public DownloadDados(Context context, String book, String url){
-this.context = context;
-this.url = "http://www.julianolopes.com.br/documentos/index.php?file=Que%20Amor%20Bonito%20-%20Thiago%20Grulha.mp3";
-this.book = book;
-this.listView = null;
-//this.mTts= mTts;
-}
-
 	@Override
 	protected String doInBackground(Void... params) {
 HttpURLConnection urlConnection = null;
@@ -103,39 +90,24 @@ HttpURLConnection urlConnection = null;
 
 	@Override
 	protected void onPostExecute(String data) {
-
-if(book!=""){
-loadBook(data);
-}
-else{
 loadList(data);
-}
-
 	}
-public void loadBook(String data){
-Intent intent = new Intent(context, SpeakOutActivity.class);
-intent.putExtra("bookName", book);
-intent.putExtra("book", data);
-context.startActivity(intent);
-
-}
 public void loadList(String data){
 String[] listBooks = data.split(";");
 ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, listBooks);
 listView.setAdapter(adapter);
 listView.setOnItemClickListener(new OnItemClickListener() {
 @Override
-public void onItemClick(AdapterView<?> parent, View view,
-int position, long id) {
-String bookName, msg;
-bookName = parent.getItemAtPosition(position).toString();
+public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+String audioBookName, msg;
+audioBookName = parent.getItemAtPosition(position).toString();
 msg="Buscando Livro...";
 Toast.makeText(context.getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
-bookName+=".mp3";
-String audioBookUrl = "http://julianolopes.com.br/api_android/library/audiobook/"+bookName;
-Intent intent = new Intent(context, SpeakOutActivity.class);
-intent.putExtra("bookName", bookName);
-intent.putExtra("book", audioBookUrl);
+audioBookName+=AUDIO_BOOK_FORMATE;
+String audioBookUrl = AUDIO_BOOK_URL+audioBookName;
+Intent intent = new Intent(context, ReadBookActivity.class);
+intent.putExtra("audio_book_name", audioBookName);
+intent.putExtra("audio_book_url", audioBookUrl);
 context.startActivity(intent);
 
 }
