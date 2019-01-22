@@ -50,6 +50,16 @@ import android.media.*;
 import android.content.res.*;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
+import com.julopes.bibliotecuran.db.DbHelper;
+import com.julopes.bibliotecuran.db.Mark;
+
+import android.database.sqlite.SQLiteDatabase;  
+import android.database.sqlite.SQLiteDatabase.CursorFactory;  
+import android.database.sqlite.SQLiteOpenHelper;  
+import android.util.Log;  
+import android.content.ContentValues;
+import android.database.Cursor;  
+
 public class ReadBookActivity extends Activity {
     private MediaPlayer mMediaPlayer;
 private TextView textView;
@@ -62,6 +72,9 @@ private static final String AUDIO_BOOK_DIRECTORY = "AudioBooks";
    private static final int OFFLINE=0;
       private static final int ONLINE=1;
 	        private static final int ONLINE_ASYNC=2;
+private DbHelper dh;
+private SQLiteDatabase db;
+
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,6 +88,7 @@ Bundle extras = intent.getExtras();
 audioBookName = extras.getString("audio_book_name");
 audioBookUrl = extras.getString("audio_book_url");
 mMediaPlayer = new MediaPlayer();
+dh = new DbHelper(this);
 btnGoAhead.setEnabled(false);
 	btnGoBack.setEnabled(false);
        if(!audioBookExists(getAudioBookPath(audioBookName))){
@@ -134,10 +148,47 @@ mMediaPlayer.setOnCompletionListener(mediaPlayerCompletionListener);
 	@Override
     public void onDestroy() {
                  super.onDestroy();
+markAudioBookPosition();
 		mMediaPlayer.stop();
         mMediaPlayer.release();
 	}
-
+private long insertMark(){
+db = dh.getWritableDatabase();
+ContentValues values = new ContentValues();
+values.put(Mark.COLUMN_AUDIO_BOOK_NAME,audioBookName);
+values.put(Mark.COLUMN_AUDIO_BOOK_MARK,mMediaPlayer.getCurrentPosition());
+long numRows = db.insert(Mark.TABLE_NAME,null,values);
+db.close();
+return numRows;
+}
+private boolean accessedAudioBook(){
+db = dh.getReadableDatabase();
+String query="select * from marks where audio_book_name='"+audioBookName+"'";
+Cursor c = db.rawQuery(query,null);
+if(c.moveToNext()){
+c.close();
+return true;
+}
+return false;
+}
+private long updateMark(){
+db = dh.getWritableDatabase();
+ContentValues values = new ContentValues();
+int mark = mMediaPlayer.getCurrentPosition();
+values.put(Mark.COLUMN_AUDIO_BOOK_MARK,mark);
+String query = Mark.COLUMN_AUDIO_BOOK_NAME+" = ?";
+String[] parameters = {audioBookName};
+int numRows = db.update(Mark.TABLE_NAME,values,query,parameters);
+db.close();
+return numRows;
+}
+private void markAudioBookPosition(){
+if(accessedAudioBook()){
+updateMark();
+}else{
+insertMark();
+}
+}
     private void initializeMediaPlayer(String audioBookPath, int REPRODUTION_MODE){
  	switch(REPRODUTION_MODE){
 	case OFFLINE:
@@ -159,6 +210,15 @@ mMediaPlayer.setOnCompletionListener(mediaPlayerCompletionListener);
 			    mMediaPlayer.setOnPreparedListener(new OnPreparedListener(){
 @Override
     public void onPrepared(MediaPlayer mp) {
+db = dh.getReadableDatabase();
+//String query ="select * from "+Mark.TABLE_NAME+" where "+Mark.COLUMN_AUDIO_BOOK_NAME+" = "+audioBookName;
+String query="select * from marks where audio_book_name='"+audioBookName+"'";
+Cursor c = db.rawQuery(query,null);
+if(c.moveToNext()){
+String mark = c.getString(c.getColumnIndex(Mark.COLUMN_AUDIO_BOOK_MARK));
+mMediaPlayer.seekTo(Integer.parseInt(mark));
+}
+c.close();
 		btnRead.setEnabled(true);
 		btnRead.setText("Ler");
 	}
