@@ -42,7 +42,7 @@ private TextToSpeech mTts;
 public DownloadDados(Context context, ListView listView){
 this.context = context;
 this.listView = listView;
-this.url = "http://julianolopes.com.br/api_android/android_request.php?id=com.julopes.bibliotecuran&list_book=true";
+this.url = "http://julianolopes.com.br/api_android/android_request.php?id=com.julopes.bibliotecuran&list_book=txt";
 this.book = "";
 //this.mTts = mTts;
 }
@@ -107,7 +107,7 @@ loadList(data);
 
 	}
 public void loadBook(String data){
-Intent intent = new Intent(context, LoadingActivity.class);
+Intent intent = new Intent(context, SpeakOutActivity.class);
 intent.putExtra("bookName", book);
 intent.putExtra("book", data);
 context.startActivity(intent);

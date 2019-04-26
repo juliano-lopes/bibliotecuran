@@ -95,6 +95,7 @@ private AudioManager am;
 		btnSpeak = (Button) findViewById(R.id.btn_speak);
         btnAvancar = (Button) findViewById(R.id.btn_avancar);
 		btnRetroceder = (Button) findViewById(R.id.btn_retroceder);
+
 Intent intent = getIntent();
 Bundle extras = intent.getExtras();
 bookName = extras.getString("bookName");
@@ -115,15 +116,17 @@ am = (AudioManager) getApplicationContext().getSystemService(getApplicationConte
         
 mTts = new TextToSpeech(this, this);
 if(bookLines.size()>0){
+    textView.setText(bookLines.get(atualLine));
 }
 else{
 	textView.setText("o texto que veio foi: vazio");
 }
-	}
+	
+    }
 @Override
 public void onStart() {
-
-		// Defining click event listener for the button btn_speak
+		super.onStart();
+        // Defining click event listener for the button btn_speak
         OnClickListener btnClickListener = new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -133,7 +136,7 @@ public void onStart() {
                     }
 					else{
 						btnSpeak.setText("Parar Leitura");
-								mMediaPlayer.reset();
+								//mMediaPlayer.reset();
 initializeMediaPlayer(atualLine);
 playMediaPlayer(0);
 					               }
@@ -145,7 +148,7 @@ playMediaPlayer(0);
         OnCompletionListener mediaPlayerCompletionListener = new OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                mMediaPlayer.reset();
+                //mMediaPlayer.reset();
 								initializeMediaPlayer(avancar());
 				playMediaPlayer(0);
                             }
@@ -156,7 +159,7 @@ mMediaPlayer.setOnCompletionListener(mediaPlayerCompletionListener);
             @Override
             public void onClick(View arg0) {
 								playMediaPlayer(1);
-mMediaPlayer.reset();
+//mMediaPlayer.reset();
 								initializeMediaPlayer(avancar());
 				playMediaPlayer(0);
 		}
@@ -165,17 +168,16 @@ mMediaPlayer.reset();
             @Override
             public void onClick(View arg0) {
 												playMediaPlayer(1);
-								mMediaPlayer.reset();
+								//mMediaPlayer.reset();
 								initializeMediaPlayer(retroceder());
 				playMediaPlayer(0);
 			}
         });
-      
-super.onStart();
 }
 
 	@Override
     public void onDestroy() {
+        super.onDestroy();
         // Stop the TextToSpeech Engine
 //        mTts.stop();
         // Shutdown the TextToSpeech Engine
@@ -184,14 +186,13 @@ super.onStart();
         mMediaPlayer.stop();
         // Release the MediaPlayer
         mMediaPlayer.release();
-		super.onDestroy();
+		
     }
     private int avancar(){
 		if(atualLine<audioBookLines.size()){
 atualLine++;
 		}
 		return atualLine;
-
 		}
 	private int retroceder(){
 		if(atualLine>0){
@@ -224,12 +225,8 @@ atualLine=0;
 		
     }
     private void playMediaPlayer(int status){
-if(atualLine==(indexCreator-2))
-convert(indexCreator);
-
-        // Start Playing
+// Start Playing
         if(status==0){
-            if(atualLine<audioBookLines.size())
 			mMediaPlayer.start();
         }
         // Pause Playing
@@ -270,17 +267,21 @@ if(status==TextToSpeech.SUCCESS){
                 public void onDone(String utteranceId){
 int index = Character.getNumericValue(utteranceId.charAt(utteranceId.length()-1));
 String audioPath=utteranceId.substring(0, utteranceId.length()-1);
-if(!audioBookLines.contains(audioPath)){
-audioBookLines.add(index, audioPath);
+if(audioBookLines.contains(audioPath)){
+audioBookLines.set(index, audioPath);
+}else{
+    audioBookLines.add(index, audioPath);
 }
+        btnSpeak.setEnabled(true);                         
 if(indexCreator<(atualLine+5)){
 convert(++indexCreator);
-}else{
-	am.abandonAudioFocus(afl);
-        btnSpeak.setEnabled(true);
-textView.setText("Creator "+indexCreator);
 }
-
+//else{
+	//am.abandonAudioFocus(afl);
+        //btnSpeak.setEnabled(true);
+//textView.setText("Creator "+indexCreator);
+//}
+textView.setText(bookLines.get(atualLine));
 //	textView.setText("o texto do done, id "+utteranceId);
                 }
                 @Override
