@@ -2,7 +2,7 @@ package com.julopes.bibliotecuran;
 
 
 
-
+import android.os.Bundle;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,7 +31,9 @@ import android.content.Intent;
 import com.julopes.bibliotecuran.AudioBookConverter;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
-
+import java.util.List;
+ import java.util.ArrayList;
+  
 public class DownloadDados extends AsyncTask<Void, Void, String> {
 private Context context;
 //private TextView textView;
@@ -107,10 +109,19 @@ loadList(data);
 
 	}
 public void loadBook(String data){
-Intent intent = new Intent(context, SpeakOutActivity.class);
-intent.putExtra("bookName", book);
-intent.putExtra("book", data);
-context.startActivity(intent);
+new AudioBookConverter(context, book, data).execute(data);
+//Intent intent = new Intent(context, SpeakOutActivity.class);
+//intent.putExtra("bookName", book);
+//intent.putExtra("book", data);
+//ArrayList<String> bookLines = new ArrayList<String>();
+//AudioBookConverter converter = new AudioBookConverter(context, book, data);
+
+//bookLines = converter.getBookContentWithFormatedLines();
+
+//Bundle bundle = new Bundle();
+//bundle.putParcelableArrayList("book",bookLines);
+//intent.putStringArrayListExtra("book", bookLines);
+//context.startActivity(intent);
 
 }
 public void loadList(String data){

@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.EditText;
+import java.util.*; 
 import java.util.Locale; 
 import android.content.Intent;
 import android.content.Context;
@@ -39,9 +40,9 @@ import android.widget.Toast;
 import android.view.View.OnClickListener;
   import java.io.File;
 import android.support.v4.content.FileProvider;
+import android.os.AsyncTask;
 
-
-public class AudioBookConverter {
+public class AudioBookConverter extends AsyncTask<String, Void, ArrayList<String>>{
         private TextToSpeech mTts;
     private int mStatus = 0;
 private List<String> bookLines;
@@ -50,7 +51,7 @@ private int atualLine;
 private String bookName;
 private String bookContent;
 private Context context;
-private static final int LINE_LENGTH=3500;
+private static final int LINE_LENGTH=500;
 public AudioBookConverter(Context context, String bookName, String bookContent){
 this.context = context;
 //this.mTts=mTts;
@@ -90,19 +91,30 @@ if(status==TextToSpeech.SUCCESS){
 private List<String> getWords(){
 return Arrays.asList(bookContent.split(" "));
 }
-public List<String> getBookContentWithFormatedLines(){
+public ArrayList<String> getBookContentWithFormatedLines(String bookContent){
 String line="";
-List<String> formedLines = new ArrayList<>();
+ArrayList<String> formedLines = new ArrayList<>();
 for(String word : getWords()){
 if(line.length()<LINE_LENGTH){
 line+=word+" ";
 }
 else{
+	line+=word+" ";
+	char lastCharacter = word.charAt(word.length()-1);
+	if((isPontuation(lastCharacter)) && (word.length()>3)){
+	line = line.replace('_', ' ');
+	line = line.replace('-', ' ');
+	line = line.replace('=', ' ');
 formedLines.add(line);
 line="";
+
+	}
 }
 }
 return formedLines;
+}
+private boolean isPontuation(char character){
+	return ((character=='.') || (character=='!') || (character=='?'));
 }
 public String getAudioBookLinesAsText(){
 String asText="";
@@ -116,5 +128,17 @@ return asText;
 }
 return asText.substring(0, asText.length()-1);
 }
+protected ArrayList<String> doInBackground(String... data) {
 
+//return getBookContentWithFormatedLines(data[0]);
+String[] ar = data[0].split("\n");
+return new ArrayList<String>(Arrays.asList(ar));
+}
+protected void onPostExecute(ArrayList<String> result) {
+Intent intent = new Intent(context, SpeakOutActivity.class);
+intent.putExtra("bookName", bookName);
+intent.putStringArrayListExtra("book", result);
+context.startActivity(intent);
+
+}
 }
