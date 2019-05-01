@@ -50,57 +50,35 @@ import android.content.ContentValues;
 import android.database.Cursor;  
 
 public class AudioBookConverter extends AsyncTask<String, String, ArrayList<String>>{
-        private TextToSpeech mTts;
-    private int mStatus = 0;
-private List<String> bookLines;
-private List<String> audioBookLines;
 private int atualLine;
+private long id;
 private String bookName;
 private String bookContent;
-private Context context;
+private List<String> bookLines;
+private List<String> audioBookLines;
+
 private static final int LINE_LENGTH=500;
 private TextView tv;
-public AudioBookConverter(Context context, String bookName, String bookContent){
-this.context = context;
-//this.mTts=mTts;
+public AudioBookConverter(long id, String bookName, String bookContent){
+this.id = id;
 this.bookName=bookName;
 this.bookContent=bookContent;
 audioBookLines = new ArrayList<>();
-bookLines = Arrays.asList(bookContent.split("\n"));
+bookLines=new ArrayList<>();
 }
-public AudioBookConverter(Context context, TextView tv){
-this.context=context;
-this.tv = tv;
+public long getId(){
+	return id;
+}
+public String getName(){
+	return bookName;
+}
 
-}
 public List<String> getAudioBookLines(){
 return audioBookLines;
 }
-
-public void convert(int i){
-
-													String utteranceCode = "tts_sound"+i;
-HashMap<String, String> myHashRender = new HashMap();
-myHashRender.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceCode);
-					 String musicName = "book_line_"+i+".wav";
-					 File appTmpPath = new File(context.getFilesDir(), musicName);
-					 String tempDestFile = appTmpPath.getAbsolutePath();
-int status=0;
-//status = mTts.synthesizeToFile(bookLines.get(i), myHashRender, tempDestFile);
-if(status==TextToSpeech.SUCCESS){
-	audioBookLines.add(tempDestFile);
+public void setTextView(TextView tv){
+	this.tv=tv;
 }
-													
-
-/*
-	btnSpeak.post(new Runnable(){
-	public void run(){
-		btnSpeak.setText("Ler");
-	}
-});
-*/
-	}
-
 private List<String> getWords(String bookContent){
 return Arrays.asList(bookContent.split(" "));
 }
@@ -115,79 +93,34 @@ else{
 	line+=word+" ";
 	char lastCharacter = word.charAt(word.length()-1);
 	if((isPontuation(lastCharacter)) && (word.length()>3)){
-	line = line.replace('_', ' ');
-	line = line.replace('-', ' ');
-	line = line.replace('=', ' ');
+line = getLineWithoutSomeCharacters(line);
 formedLines.add(line);
 line="";
+}
+}
+}
 
-	}
-}
-}
 return formedLines;
 }
 private boolean isPontuation(char character){
-	return ((character=='.') || (character=='!') || (character=='?'));}
-public String getAudioBookLinesAsText(){
-String asText="";
-if(audioBookLines.size()>0){
-for(String line : audioBookLines){
-asText+=line+";";
-}
-} else{
-//mTts.speak("nenhuma linha de audio",TextToSpeech.QUEUE_FLUSH,null);
-return asText;
-}
-return asText.substring(0, asText.length()-1);
-}
-protected ArrayList<String> doInBackground(String... data) {
-DbHelper dh = new DbHelper(context);
-SQLiteDatabase db = dh.getReadableDatabase();
-long id = Long.parseLong(data[0]);
-String query ="select * from "+BookTable.TABLE_NAME+" where "+BookTable.COLUMN_NAME_ID+"="+id;
-Cursor c = db.rawQuery(query,null);
-c.moveToNext();
-String n = c.getString(c.getColumnIndex(BookTable.COLUMN_NAME_NAME));
-String content = c.getString(c.getColumnIndex(BookTable.COLUMN_NAME_CONTENT));
-c.close();
+	return ((character=='.') || (character=='!') || (character=='?'));
+	}
 
-String line="";
-int i=1;
-ArrayList<String> formedLines = new ArrayList<>();
-
-if(content!=""){
-
-
-for(String word : getWords(content)){
-if(line.length()<LINE_LENGTH){
-line+=word+" ";
-}
-else{
-	line+=word+" ";
-	char lastCharacter = word.charAt(word.length()-1);
-	if((isPontuation(lastCharacter)) && (word.length()>3)){
-	line = line.replace('_', ' ');
+private String getLineWithoutSomeCharacters(String line){
+		line = line.replace('_', ' ');
 	line = line.replace('-', ' ');
 	line = line.replace('=', ' ');
-formedLines.add(line);
-line="";
-publishProgress("Linha "+i+" formed");
-/*
-try{
-Thread.sleep(1000);
-}catch(InterruptedException e){
-e.printStackTrace();
+return line;
 }
-*/
-i++;
-	}
-}
-}
+@Override
+protected ArrayList<String> doInBackground(String... data) {
+ArrayList<String> formedLines = new ArrayList<>();
+if(!bookContent.equals("")){
+formedLines=getBookContentWithFormatedLines(bookContent);
 }
 else{
-	publishProgress("Nao foi possivel carregar o livro "+n);
+	publishProgress("Nao foi possivel carregar o livro "+bookName);
 }
-
 return formedLines;
 }
 @Override
@@ -195,9 +128,7 @@ protected void onProgressUpdate(String... values) {
 	tv.setText(values[0]);
 }
 protected void onPostExecute(ArrayList<String> result) {
-//tv.setText("Book was formated");
-SpeakOutActivity.setFormatedBookLines(result, tv);
-//SpeakOutActivity.finalizou(tv);
+SpeakOutActivity.setFormatedBookLines(result);
 /*
 Intent intent = new Intent(context, SpeakOutActivity.class);
 intent.putExtra("bookName", bookName);

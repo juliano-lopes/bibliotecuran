@@ -134,14 +134,6 @@ public void loadBook(String data){
 Intent intent = new Intent(context, SpeakOutActivity.class);
 intent.putExtra("bookName", book);
 intent.putExtra("insertion", data);
-//ArrayList<String> bookLines = new ArrayList<String>();
-//AudioBookConverter converter = new AudioBookConverter(context, book, data);
-
-//bookLines = converter.getBookContentWithFormatedLines();
-
-//Bundle bundle = new Bundle();
-//bundle.putParcelableArrayList("book",bookLines);
-//intent.putStringArrayListExtra("book", bookLines);
 context.startActivity(intent);
 
 }
@@ -155,7 +147,7 @@ public void onItemClick(AdapterView<?> parent, View view,
 int position, long id) {
 String bookName, msg;
 bookName = parent.getItemAtPosition(position).toString();
-msg="Carregando Livro...";
+msg="Buscando livro...";
 Toast.makeText(context.getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
 /*
 Intent intent = new Intent(context, SpeakOutActivity.class);
