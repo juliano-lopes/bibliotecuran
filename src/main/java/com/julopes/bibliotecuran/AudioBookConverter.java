@@ -41,8 +41,15 @@ import android.view.View.OnClickListener;
   import java.io.File;
 import android.support.v4.content.FileProvider;
 import android.os.AsyncTask;
+import com.julopes.bibliotecuran.db.*;
 
-public class AudioBookConverter extends AsyncTask<String, Void, ArrayList<String>>{
+import android.database.sqlite.SQLiteDatabase;  
+import android.database.sqlite.SQLiteDatabase.CursorFactory;  
+import android.database.sqlite.SQLiteOpenHelper;  
+import android.content.ContentValues;
+import android.database.Cursor;  
+
+public class AudioBookConverter extends AsyncTask<String, String, ArrayList<String>>{
         private TextToSpeech mTts;
     private int mStatus = 0;
 private List<String> bookLines;
@@ -52,6 +59,7 @@ private String bookName;
 private String bookContent;
 private Context context;
 private static final int LINE_LENGTH=500;
+private TextView tv;
 public AudioBookConverter(Context context, String bookName, String bookContent){
 this.context = context;
 //this.mTts=mTts;
@@ -59,6 +67,11 @@ this.bookName=bookName;
 this.bookContent=bookContent;
 audioBookLines = new ArrayList<>();
 bookLines = Arrays.asList(bookContent.split("\n"));
+}
+public AudioBookConverter(Context context, TextView tv){
+this.context=context;
+this.tv = tv;
+
 }
 public List<String> getAudioBookLines(){
 return audioBookLines;
@@ -88,13 +101,13 @@ if(status==TextToSpeech.SUCCESS){
 */
 	}
 
-private List<String> getWords(){
+private List<String> getWords(String bookContent){
 return Arrays.asList(bookContent.split(" "));
 }
 public ArrayList<String> getBookContentWithFormatedLines(String bookContent){
 String line="";
 ArrayList<String> formedLines = new ArrayList<>();
-for(String word : getWords()){
+for(String word : getWords(bookContent)){
 if(line.length()<LINE_LENGTH){
 line+=word+" ";
 }
@@ -114,8 +127,7 @@ line="";
 return formedLines;
 }
 private boolean isPontuation(char character){
-	return ((character=='.') || (character=='!') || (character=='?'));
-}
+	return ((character=='.') || (character=='!') || (character=='?'));}
 public String getAudioBookLinesAsText(){
 String asText="";
 if(audioBookLines.size()>0){
@@ -129,16 +141,68 @@ return asText;
 return asText.substring(0, asText.length()-1);
 }
 protected ArrayList<String> doInBackground(String... data) {
+DbHelper dh = new DbHelper(context);
+SQLiteDatabase db = dh.getReadableDatabase();
+long id = Long.parseLong(data[0]);
+String query ="select * from "+BookTable.TABLE_NAME+" where "+BookTable.COLUMN_NAME_ID+"="+id;
+Cursor c = db.rawQuery(query,null);
+c.moveToNext();
+String n = c.getString(c.getColumnIndex(BookTable.COLUMN_NAME_NAME));
+String content = c.getString(c.getColumnIndex(BookTable.COLUMN_NAME_CONTENT));
+c.close();
 
-//return getBookContentWithFormatedLines(data[0]);
-String[] ar = data[0].split("\n");
-return new ArrayList<String>(Arrays.asList(ar));
+String line="";
+int i=1;
+ArrayList<String> formedLines = new ArrayList<>();
+
+if(content!=""){
+
+
+for(String word : getWords(content)){
+if(line.length()<LINE_LENGTH){
+line+=word+" ";
+}
+else{
+	line+=word+" ";
+	char lastCharacter = word.charAt(word.length()-1);
+	if((isPontuation(lastCharacter)) && (word.length()>3)){
+	line = line.replace('_', ' ');
+	line = line.replace('-', ' ');
+	line = line.replace('=', ' ');
+formedLines.add(line);
+line="";
+publishProgress("Linha "+i+" formed");
+/*
+try{
+Thread.sleep(1000);
+}catch(InterruptedException e){
+e.printStackTrace();
+}
+*/
+i++;
+	}
+}
+}
+}
+else{
+	publishProgress("Nao foi possivel carregar o livro "+n);
+}
+
+return formedLines;
+}
+@Override
+protected void onProgressUpdate(String... values) {
+	tv.setText(values[0]);
 }
 protected void onPostExecute(ArrayList<String> result) {
+//tv.setText("Book was formated");
+SpeakOutActivity.setFormatedBookLines(result, tv);
+//SpeakOutActivity.finalizou(tv);
+/*
 Intent intent = new Intent(context, SpeakOutActivity.class);
 intent.putExtra("bookName", bookName);
 intent.putStringArrayListExtra("book", result);
 context.startActivity(intent);
-
+*/
 }
 }

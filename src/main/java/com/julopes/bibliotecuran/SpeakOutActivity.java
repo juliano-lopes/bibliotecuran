@@ -51,7 +51,9 @@ public class SpeakOutActivity extends Activity implements TextToSpeech.OnInitLis
 
 	private Uri caminhoArmazenar;
 	private static final String TALKBACK_SETTING_ACTIVITY_NAME = "com.android.talkback.TalkBackPreferencesActivity";
-        private TextToSpeech mTts;
+        private static TextToSpeech mTts;
+        private static  File FILES_DIR;
+//        getApplicationContext().getFilesDir();
     private int mStatus = 0;
     private MediaPlayer mMediaPlayer;
 AssetManager assets;
@@ -66,10 +68,10 @@ AssetFileDescriptor fd;
 		
     private String bookName;
 private String book;
-private List<String> bookLines;
+private static List<String> bookLines;
 private List<String> audioBookLines;
 private int atualLine;
-private int indexCreator;
+private static int indexCreator;
 private static final int QUANTITY_TO_BE_CREATED=5;
 private boolean read;
 private String url;
@@ -99,10 +101,11 @@ private AudioManager am;
 Intent intent = getIntent();
 Bundle extras = intent.getExtras();
 bookName = extras.getString("bookName");
-//book = extras.getString("book");
+book = extras.getString("insertion");
 //bookLines = extras.getParcelableArrayList("book");
-bookLines = intent.getStringArrayListExtra("book");
+//bookLines = intent.getStringArrayListExtra("book");
 audioBookLines = new ArrayList<>();
+bookLines = new ArrayList<>();
 //converter = new AudioBookConverter(this, bookName, book);
 //bookLines = converter.getBookContentWithFormatedLines();
 atualLine=0;
@@ -110,13 +113,16 @@ indexCreator=0;
 bookCreated=false;        
 mMediaPlayer = new MediaPlayer();
 assets = this.getAssets();
-btnSpeak.setText("Ler");
-btnSpeak.setEnabled(false);
+btnSpeak.setText("Carregar");
+//btnSpeak.setEnabled(false);
 //btnAvancar.setEnabled(false);
 	//btnRetroceder.setEnabled(false);
 am = (AudioManager) getApplicationContext().getSystemService(getApplicationContext().AUDIO_SERVICE);
         
 mTts = new TextToSpeech(this, this);
+
+new AudioBookConverter(this, textView).execute(book);
+textView.setText(book);
 if(bookLines.size()>0){
     //textView.setText(bookLines.get(atualLine));
     //progress.start();
@@ -128,6 +134,13 @@ else{
 }
 	
     }
+public static void finalizou(TextView tv){
+    tv.setText("pronto para converter");
+}
+public static void setFormatedBookLines(ArrayList<String> formatedLines, TextView tv){
+    bookLines=formatedLines;
+tv.setText(tv.getText().toString()+"\n"+bookLines.get(indexCreator));
+}
 @Override
 public void onStart() {
 		super.onStart();
@@ -137,6 +150,11 @@ public void onStart() {
         OnClickListener btnClickListener = new OnClickListener() {
             @Override
             public void onClick(View v) {
+                    if(!bookCreated){
+                        convert(indexCreator);
+                        return;
+                    }
+                    
                     if(mMediaPlayer != null && mMediaPlayer.isPlaying()){
                         pauseMediaPlayer();
                         btnSpeak.setText("Ler");
@@ -255,7 +273,9 @@ private void pauseMediaPlayer(){
 public void convert(int i){
 if(i<bookLines.size()){
 			 String musicName = "book_line_"+i+".wav";
-					 File appTmpPath = new File(getApplicationContext().getFilesDir(), musicName);
+					 
+                     File appTmpPath = new File(getApplicationContext().getFilesDir(), musicName);
+//File appTmpPath = new File(filesDir, musicName);
 					 String tempDestFile = appTmpPath.getAbsolutePath();
 String utteranceCode = tempDestFile+"#"+i;
 HashMap<String, String> myHashRender = new HashMap();
@@ -297,13 +317,14 @@ int index = Integer.parseInt(arUtteranceId[1]);
 
 if(indexCreator<100){
 convert(indexCreator++);
-if(indexCreator<50){
+if(indexCreator<10){
     	btnSpeak.setText("Carregando pagina...");
 
 }else{
             am.abandonAudioFocus(afl);
 btnSpeak.setText("Ler");
         btnSpeak.setEnabled(true);
+        bookCreated=true;
         }
 }
 else{
@@ -369,7 +390,7 @@ convert(index);
         setTts(mTts);
 		int focus_res = am.requestAudioFocus(afl, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE);
         if (focus_res == AudioManager.AUDIOFOCUS_REQUEST_GRANTED){
-convert(indexCreator);
+//convert(indexCreator);
 		}
     }
 

@@ -33,6 +33,13 @@ import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
 import java.util.List;
  import java.util.ArrayList;
+import com.julopes.bibliotecuran.db.*;
+
+import android.database.sqlite.SQLiteDatabase;  
+import android.database.sqlite.SQLiteDatabase.CursorFactory;  
+import android.database.sqlite.SQLiteOpenHelper;  
+import android.content.ContentValues;
+import android.database.Cursor;  
   
 public class DownloadDados extends AsyncTask<Void, Void, String> {
 private Context context;
@@ -77,8 +84,21 @@ this.listView = null;
 				buffer.append(linha);
 				buffer.append("\n");
 			}
+if(!book.equals("")){
 
-			return buffer.toString();
+
+DbHelper dh = new DbHelper(context);
+SQLiteDatabase db = dh.getWritableDatabase();
+ContentValues values = new ContentValues();
+values.put(BookTable.COLUMN_NAME_NAME,book);
+values.put(BookTable.COLUMN_NAME_CONTENT,buffer.toString());
+long numRows = db.insert(BookTable.TABLE_NAME,null,values);
+db.close();
+
+			//return buffer.toString();
+			return String.valueOf(numRows);
+}
+return buffer.toString();
 		} catch (Exception e) {
 			e.printStackTrace();
 			if (urlConnection != null) {
@@ -109,10 +129,11 @@ loadList(data);
 
 	}
 public void loadBook(String data){
-new AudioBookConverter(context, book, data).execute(data);
-//Intent intent = new Intent(context, SpeakOutActivity.class);
-//intent.putExtra("bookName", book);
-//intent.putExtra("book", data);
+
+//new AudioBookConverter(context, book, data).execute(data);
+Intent intent = new Intent(context, SpeakOutActivity.class);
+intent.putExtra("bookName", book);
+intent.putExtra("insertion", data);
 //ArrayList<String> bookLines = new ArrayList<String>();
 //AudioBookConverter converter = new AudioBookConverter(context, book, data);
 
@@ -121,7 +142,7 @@ new AudioBookConverter(context, book, data).execute(data);
 //Bundle bundle = new Bundle();
 //bundle.putParcelableArrayList("book",bookLines);
 //intent.putStringArrayListExtra("book", bookLines);
-//context.startActivity(intent);
+context.startActivity(intent);
 
 }
 public void loadList(String data){
