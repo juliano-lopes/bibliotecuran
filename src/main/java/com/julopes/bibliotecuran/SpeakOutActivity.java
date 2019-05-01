@@ -112,7 +112,7 @@ bookCreated=false;
 mMediaPlayer = new MediaPlayer();
 assets = this.getAssets();
 btnSpeak.setText("Carregar");
-//btnSpeak.setEnabled(false);
+btnSpeak.setEnabled(false);
 btnAvancar.setEnabled(false);
 	btnRetroceder.setEnabled(false);
 am = (AudioManager) getApplicationContext().getSystemService(getApplicationContext().AUDIO_SERVICE);
@@ -122,6 +122,7 @@ bookRepo = new BookRepository(this);
 book=bookRepo.getAudioBookConverterById(Long.parseLong(bookId));
 if(book!=null){
     book.setTextView(textView);
+    book.setButton(btnSpeak);
     book.execute();
 }
 }

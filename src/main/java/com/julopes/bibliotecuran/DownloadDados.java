@@ -34,7 +34,7 @@ import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
 import java.util.List;
  import java.util.ArrayList;
 import com.julopes.bibliotecuran.db.*;
-
+import com.julopes.bibliotecuran.repository.*;
 import android.database.sqlite.SQLiteDatabase;  
 import android.database.sqlite.SQLiteDatabase.CursorFactory;  
 import android.database.sqlite.SQLiteOpenHelper;  
@@ -43,17 +43,14 @@ import android.database.Cursor;
   
 public class DownloadDados extends AsyncTask<Void, Void, String> {
 private Context context;
-//private TextView textView;
 private ListView listView;
 private String url;
 private String book;
-private TextToSpeech mTts;
 public DownloadDados(Context context, ListView listView){
 this.context = context;
 this.listView = listView;
 this.url = "http://julianolopes.com.br/api_android/android_request.php?id=com.julopes.bibliotecuran&list_book=txt";
 this.book = "";
-//this.mTts = mTts;
 }
 
 public DownloadDados(Context context, String book, String url){
@@ -61,11 +58,19 @@ this.context = context;
 this.url = url;
 this.book = book;
 this.listView = null;
-//this.mTts= mTts;
 }
 
 	@Override
 	protected String doInBackground(Void... params) {
+		
+		if(!book.equals("")){
+			BookRepository bookRepo = new BookRepository(context);
+			AudioBookConverter audioBook = bookRepo.getAudioBookConverterByName(book);
+			if(audioBook!=null){
+				return String.valueOf(audioBook.getId());
+			}
+		}
+		
 		HttpURLConnection urlConnection = null;
 		BufferedReader reader = null;
 		try {

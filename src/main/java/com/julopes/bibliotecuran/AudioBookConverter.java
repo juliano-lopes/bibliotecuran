@@ -59,6 +59,7 @@ private List<String> audioBookLines;
 
 private static final int LINE_LENGTH=500;
 private TextView tv;
+private Button btn;
 public AudioBookConverter(long id, String bookName, String bookContent){
 this.id = id;
 this.bookName=bookName;
@@ -78,6 +79,9 @@ return audioBookLines;
 }
 public void setTextView(TextView tv){
 	this.tv=tv;
+}
+public void setButton(Button btn){
+	this.btn=btn;
 }
 private List<String> getWords(String bookContent){
 return Arrays.asList(bookContent.split(" "));
@@ -129,6 +133,7 @@ protected void onProgressUpdate(String... values) {
 }
 protected void onPostExecute(ArrayList<String> result) {
 SpeakOutActivity.setFormatedBookLines(result);
+btn.setEnabled(true);
 /*
 Intent intent = new Intent(context, SpeakOutActivity.class);
 intent.putExtra("bookName", bookName);

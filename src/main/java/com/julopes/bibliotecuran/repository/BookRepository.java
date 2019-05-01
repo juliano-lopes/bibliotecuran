@@ -29,7 +29,7 @@ return book;
 public AudioBookConverter getAudioBookConverterByName(String bookName){
 DbHelper dh = new DbHelper(context);
 SQLiteDatabase db = dh.getReadableDatabase();
-String query ="select * from "+BookTable.TABLE_NAME+" where "+BookTable.COLUMN_NAME_ID+"="+bookName;
+String query ="select * from "+BookTable.TABLE_NAME+" where "+BookTable.COLUMN_NAME_NAME+" like '"+bookName+"'";
 Cursor c = db.rawQuery(query,null);
 AudioBookConverter book=null;
 if(c.moveToNext()){
