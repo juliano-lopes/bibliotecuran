@@ -1,7 +1,7 @@
 package com.julopes.bibliotecuran.db;
     public class BookTable {
-        public static final String TABLE_NAME = "book";
-        public static final String COLUMN_NAME_ID = "id";
-        public static final String COLUMN_NAME_NAME = "book_name";
-public static final String COLUMN_NAME_CONTENT = "book_content";
+        public static final String TABLE_NAME = "BOOK";
+        public static final String BOOK_ID = "ID";
+        public static final String BOOK_NAME = "NAME";
+public static final String BOOK_CONTENT = "CONTENT";
     }

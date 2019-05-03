@@ -48,6 +48,13 @@ import android.media.*;
 import android.content.res.*;
 import com.julopes.bibliotecuran.AudioBookConverter;
 import com.julopes.bibliotecuran.repository.*;
+import com.julopes.bibliotecuran.db.*;
+import android.database.sqlite.SQLiteDatabase;  
+import android.database.sqlite.SQLiteDatabase.CursorFactory;  
+import android.database.sqlite.SQLiteOpenHelper;  
+import android.content.ContentValues;
+import android.database.Cursor;  
+
 public class SpeakOutActivity extends Activity implements TextToSpeech.OnInitListener {
 
 	private Uri caminhoArmazenar;
@@ -116,15 +123,19 @@ btnSpeak.setEnabled(false);
 btnAvancar.setEnabled(false);
 	btnRetroceder.setEnabled(false);
 am = (AudioManager) getApplicationContext().getSystemService(getApplicationContext().AUDIO_SERVICE);
-       
+      
 mTts = new TextToSpeech(this, this);
-bookRepo = new BookRepository(this);
-book=bookRepo.getAudioBookConverterById(Long.parseLong(bookId));
+BookRepository bookRepo = new BookRepository(this);
+book=bookRepo.getAudioBookConverterById(Integer.parseInt(bookId));
 if(book!=null){
     book.setTextView(textView);
     book.setButton(btnSpeak);
     book.execute();
 }
+else{
+    Toast.makeText(getApplicationContext(), "Desculpe, ocorreu um erro ao buscar este livro...", Toast.LENGTH_SHORT).show();
+}
+
 }
 public static void setFormatedBookLines(ArrayList<String> formatedLines){
     bookLines=formatedLines;

@@ -62,15 +62,6 @@ this.listView = null;
 
 	@Override
 	protected String doInBackground(Void... params) {
-		
-		if(!book.equals("")){
-			BookRepository bookRepo = new BookRepository(context);
-			AudioBookConverter audioBook = bookRepo.getAudioBookConverterByName(book);
-			if(audioBook!=null){
-				return String.valueOf(audioBook.getId());
-			}
-		}
-		
 		HttpURLConnection urlConnection = null;
 		BufferedReader reader = null;
 		try {
@@ -78,38 +69,20 @@ this.listView = null;
 			urlConnection = (HttpURLConnection) url.openConnection();
 			urlConnection.setRequestMethod("GET");
 			urlConnection.connect();
-
 			InputStream inputStream = urlConnection.getInputStream();
-
 			reader = new BufferedReader(new InputStreamReader(inputStream));
-
 			String linha;
 			StringBuffer buffer = new StringBuffer();
 			while ((linha = reader.readLine()) != null) {
 				buffer.append(linha);
 				buffer.append("\n");
 			}
-if(!book.equals("")){
-
-
-DbHelper dh = new DbHelper(context);
-SQLiteDatabase db = dh.getWritableDatabase();
-ContentValues values = new ContentValues();
-values.put(BookTable.COLUMN_NAME_NAME,book);
-values.put(BookTable.COLUMN_NAME_CONTENT,buffer.toString());
-long numRows = db.insert(BookTable.TABLE_NAME,null,values);
-db.close();
-
-			//return buffer.toString();
-			return String.valueOf(numRows);
-}
 return buffer.toString();
 		} catch (Exception e) {
 			e.printStackTrace();
 			if (urlConnection != null) {
 				urlConnection.disconnect();
 			}
-
 			if (reader != null) {
 				try {
 					reader.close();
@@ -118,29 +91,29 @@ return buffer.toString();
 				}
 			}
 		}
-
 		return null;
 	}
 
 	@Override
 	protected void onPostExecute(String data) {
-
-if(book!=""){
-loadBook(data);
-}
-else{
+if(book.equals("")){
 loadList(data);
 }
-
+else{
+loadBook(data);
+}
 	}
 public void loadBook(String data){
-
-//new AudioBookConverter(context, book, data).execute(data);
+BookRepository bookRepo = new BookRepository(context);
+String id = bookRepo.insert(book,data);
+if(id.equals("-1")){
+	    Toast.makeText(context, "Desculpe, ocorreu um erro ao buscar este livro...", Toast.LENGTH_SHORT).show();
+		return;
+}
 Intent intent = new Intent(context, SpeakOutActivity.class);
 intent.putExtra("bookName", book);
-intent.putExtra("insertion", data);
+intent.putExtra("insertion", id);
 context.startActivity(intent);
-
 }
 public void loadList(String data){
 String[] listBooks = data.split(";");
@@ -154,15 +127,17 @@ String bookName, msg;
 bookName = parent.getItemAtPosition(position).toString();
 msg="Buscando livro...";
 Toast.makeText(context.getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
-/*
+BookRepository bookRepo = new BookRepository(context);
+if(bookRepo.isBookSavedByName(bookName)){
+AudioBookConverter audioBook = bookRepo.getAudioBookConverterByName(bookName);
 Intent intent = new Intent(context, SpeakOutActivity.class);
 intent.putExtra("bookName", bookName);
-intent.putExtra("book", book);
+intent.putExtra("insertion", String.valueOf(audioBook.getId()));
 context.startActivity(intent);
-*/
+}else{
 String newUrl = "http://julianolopes.com.br/api_android/android_request.php?id=com.julopes.bibliotecuran&book="+bookName;
 new DownloadDados(context, bookName, newUrl).execute();
-
+}
 
 }
 });
