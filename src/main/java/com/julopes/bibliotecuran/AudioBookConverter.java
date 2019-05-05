@@ -54,16 +54,18 @@ private int atualLine;
 private long id;
 private String bookName;
 private String bookContent;
+private int bookMark;
 private List<String> bookLines;
 private List<String> audioBookLines;
 
 private static final int LINE_LENGTH=25;
 private TextView tv;
 private Button btn;
-public AudioBookConverter(long id, String bookName, String bookContent){
+public AudioBookConverter(long id, String bookName, String bookContent, int bookMark){
 this.id = id;
 this.bookName=bookName;
 this.bookContent=bookContent;
+this.bookMark=bookMark;
 audioBookLines = new ArrayList<>();
 bookLines=new ArrayList<>();
 }
@@ -73,7 +75,15 @@ public long getId(){
 public String getName(){
 	return bookName;
 }
-
+public String getContent(){
+	return bookContent;
+}
+public int getMark(){
+	return bookMark;
+}
+public void setMark(int mark){
+	bookMark=mark;
+}
 public List<String> getAudioBookLines(){
 return audioBookLines;
 }

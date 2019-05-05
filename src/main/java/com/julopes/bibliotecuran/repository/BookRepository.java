@@ -33,8 +33,10 @@ Cursor c = db.rawQuery(query,null);
 AudioBookConverter book=null;
 if(c.getCount()>0){
     c.moveToFirst();
-book = new AudioBookConverter(bookId, c.getString(c.getColumnIndex(BookTable.BOOK_NAME)),
-c.getString(c.getColumnIndex(BookTable.BOOK_CONTENT)));
+book = new AudioBookConverter(bookId,
+c.getString(c.getColumnIndex(BookTable.BOOK_NAME)),
+c.getString(c.getColumnIndex(BookTable.BOOK_CONTENT)),
+c.getInt(c.getColumnIndex(BookTable.BOOK_MARK)));
 }
 c.close();
 db.close();
@@ -49,7 +51,10 @@ Cursor c = db.rawQuery(query,null);
 AudioBookConverter book=null;
 if(c.getCount()>0){
 c.moveToFirst();
-book = new AudioBookConverter(c.getLong(c.getColumnIndex(BookTable.BOOK_ID)), bookName, c.getString(c.getColumnIndex(BookTable.BOOK_CONTENT)));
+book = new AudioBookConverter(c.getLong(c.getColumnIndex(BookTable.BOOK_ID)),
+bookName,
+c.getString(c.getColumnIndex(BookTable.BOOK_CONTENT)),
+c.getInt(c.getColumnIndex(BookTable.BOOK_MARK)));
 }
 c.close();
 db.close();
@@ -68,5 +73,23 @@ SQLiteDatabase db = dbHelper.getWritableDatabase();
 db.close();
 return String.valueOf(result);
     }
-
+    public int saveMark(AudioBookConverter book){
+        DbHelper dbHelper = new DbHelper(context);
+SQLiteDatabase db = dbHelper.getWritableDatabase();
+ContentValues values = toValues(book);
+int result =  db.update(BookTable.TABLE_NAME, values, "ID=?", toArgs(book));
+db.close();
+return result;
+}
+        private ContentValues toValues(AudioBookConverter book) {
+        ContentValues values = new ContentValues();
+        values.put(BookTable.BOOK_NAME, book.getName());
+        values.put(BookTable.BOOK_CONTENT, book.getContent());
+        values.put(BookTable.BOOK_MARK, book.getMark());
+        return values;
+    }
+    private String[] toArgs(AudioBookConverter book) {
+        String[] args = {String.valueOf(book.getId())};
+        return args;
+    }
 }

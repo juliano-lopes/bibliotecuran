@@ -4,4 +4,5 @@ package com.julopes.bibliotecuran.db;
         public static final String BOOK_ID = "ID";
         public static final String BOOK_NAME = "NAME";
 public static final String BOOK_CONTENT = "CONTENT";
+public static final String  BOOK_MARK = "MARK";
     }

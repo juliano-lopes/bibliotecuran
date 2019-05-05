@@ -116,9 +116,6 @@ String bookId = extras.getString("insertion");
 audioBookLines = new ArrayList<>();
 bookLines = new ArrayList<>();
 //bookLines = intent.getStringArrayListExtra("bookLines");
-atualLine=0;
-indexCreator=0;
-bookCreated=false;        
 mMediaPlayer = new MediaPlayer();
 assets = this.getAssets();
 btnSpeak.setText("Falar");
@@ -127,13 +124,16 @@ btnAvancar.setEnabled(false);
 	btnRetroceder.setEnabled(false);
     isToSpeak=false;
 am = (AudioManager) getApplicationContext().getSystemService(getApplicationContext().AUDIO_SERVICE);
-      
 mTts = new TextToSpeech(this,this);
+bookCreated=false;        
+indexCreator=0;
 
-BookRepository bookRepo = new BookRepository(this);
+
+bookRepo = new BookRepository(this);
 book=bookRepo.getAudioBookConverterById(Integer.parseInt(bookId));
 if(book!=null){
-    book.setTextView(textView);
+    atualLine=book.getMark();
+        book.setTextView(textView);
     book.setButton(btnSpeak);
     book.execute();
 }
@@ -141,30 +141,6 @@ else{
     Toast.makeText(getApplicationContext(), "Desculpe, ocorreu um erro ao buscar este livro...", Toast.LENGTH_SHORT).show();
 }
 
-}
-private String obterDiretorio()
-{
-    File root = android.os.Environment.getExternalStorageDirectory();
-    return root.toString();
-}
-public ArrayList<String> listar()
-{  
-   ArrayList<String> minhaLista = new ArrayList<String>();
-   File diretorio = new File(obterDiretorio()+"/WhatsApp/Media/WhatsApp Documents"); 
-   File[] arquivos = diretorio.listFiles();    
-if(arquivos != null)
-   { 
-      int length = arquivos.length; 
-      for(int i = 0; i < length; ++i)
-      { 
-          File f = arquivos[i]; 
-          if(f.isFile())
-          {
-              minhaLista.add(f.getName());
-          } 
-      }
-       }   
-return minhaLista;
 }
 public static void setFormatedBookLines(ArrayList<String> formatedLines){
     bookLines=formatedLines;
@@ -267,6 +243,10 @@ toSpeak(atualLine,TextToSpeech.QUEUE_FLUSH);
         mMediaPlayer.stop();
         // Release the MediaPlayer
         mMediaPlayer.release();
+  if(book!=null){
+      book.setMark(atualLine);
+  bookRepo.saveMark(book);
+  }
   }
         
 private int avancar(){

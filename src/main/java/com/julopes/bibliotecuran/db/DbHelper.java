@@ -11,7 +11,7 @@ package com.julopes.bibliotecuran.db;
                                                     }
             @Override
             public void onCreate(SQLiteDatabase db) {
-db.execSQL("CREATE TABLE BOOK(ID INTEGER PRIMARY KEY AUTOINCREMENT, NAME TEXT, CONTENT TEXT);");
+db.execSQL("CREATE TABLE BOOK(ID INTEGER PRIMARY KEY AUTOINCREMENT, NAME TEXT, CONTENT TEXT, MARK INTEGER);");
             }
             @Override
             public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
