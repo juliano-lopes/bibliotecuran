@@ -57,7 +57,7 @@ private String bookContent;
 private List<String> bookLines;
 private List<String> audioBookLines;
 
-private static final int LINE_LENGTH=500;
+private static final int LINE_LENGTH=25;
 private TextView tv;
 private Button btn;
 public AudioBookConverter(long id, String bookName, String bookContent){

@@ -26,6 +26,10 @@ import android.speech.tts.UtteranceProgressListener;
 import android.os.Build;
 import java.util.Locale;
 import android.util.Log;
+import android.content.pm.PackageManager;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.app.ActivityCompat;
+
 public class MainActivity extends Activity {
 private ListView listView;
 private TextView titulo;
@@ -41,9 +45,11 @@ setContentView(R.layout.main_listview_layout);
 titulo = (TextView) findViewById(R.id.titulo);
 descricao = (TextView) findViewById(R.id.descricao);
 listView = (ListView) findViewById(R.id.list_view);
+
 DownloadDados dd = new DownloadDados(this, listView);
 dd.execute();
 }
+
 @Override
 public void onStart() {
 super.onStart();
