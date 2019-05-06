@@ -105,7 +105,8 @@ loadBook(data);
 	}
 public void loadBook(String data){
 BookRepository bookRepo = new BookRepository(context);
-String id = bookRepo.insert(book,data);
+AudioBookConverter audioBook = new AudioBookConverter(book,data);
+String id = bookRepo.insert(audioBook);
 if(id.equals("-1")){
 	    Toast.makeText(context, "Desculpe, ocorreu um erro ao buscar este livro...", Toast.LENGTH_SHORT).show();
 		return;

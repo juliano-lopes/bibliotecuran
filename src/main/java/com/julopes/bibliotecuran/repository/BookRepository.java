@@ -61,15 +61,11 @@ db.close();
 return book;
 }
     
-    public String insert(String bookName, String bookContent){
+    public String insert(AudioBookConverter book){
         DbHelper dbHelper = new DbHelper(context);
 SQLiteDatabase db = dbHelper.getWritableDatabase();
-                ContentValues values;
-        long result;
-       values = new ContentValues();
-       values.put(BookTable.BOOK_NAME, bookName);
-       values.put(BookTable.BOOK_CONTENT, bookContent);
-       result = db.insert(BookTable.TABLE_NAME, null, values);
+                ContentValues values = toValues(book);
+       long result = db.insert(BookTable.TABLE_NAME, null, values);
 db.close();
 return String.valueOf(result);
     }

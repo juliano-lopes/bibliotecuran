@@ -69,6 +69,13 @@ this.bookMark=bookMark;
 audioBookLines = new ArrayList<>();
 bookLines=new ArrayList<>();
 }
+public AudioBookConverter(String bookName, String bookContent){
+	this.bookName=bookName;
+	this.bookContent=bookContent;
+	audioBookLines = new ArrayList<>();
+bookLines=new ArrayList<>();
+
+}
 public long getId(){
 	return id;
 }
