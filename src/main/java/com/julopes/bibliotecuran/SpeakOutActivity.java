@@ -46,7 +46,8 @@ import android.view.View.OnClickListener;
 import android.support.v4.content.FileProvider;
 import android.media.*;
 import android.content.res.*;
-import com.julopes.bibliotecuran.AudioBookConverter;
+import com.julopes.bibliotecuran.Book;
+import com.julopes.bibliotecuran.BookFormater;
 import com.julopes.bibliotecuran.repository.*;
 import com.julopes.bibliotecuran.db.*;
 import android.database.sqlite.SQLiteDatabase;  
@@ -63,14 +64,13 @@ private boolean isToSpeak;
 	private static final String TALKBACK_SETTING_ACTIVITY_NAME = "com.android.talkback.TalkBackPreferencesActivity";
         private static TextToSpeech mTts;
   private int mStatus = 0;
-    private TextView textView;
-	private Button btnSpeak;
+    private static TextView textView;
+	private static Button btnSpeak;
 	    private Button btnAvancar;
 			    private Button btnRetroceder;
 private static List<String> bookLines;
-private List<String> audioBookLines;
 private int atualLine;
-private AudioBookConverter book;
+private Book book;
 private BookRepository bookRepo;
    
     @Override
@@ -84,23 +84,19 @@ textView  = (TextView) findViewById(R.id.text_view);
 
 Intent intent = getIntent();
 Bundle extras = intent.getExtras();
-String bookName = extras.getString("bookName");
 String bookId = extras.getString("insertion");
-audioBookLines = new ArrayList<>();
 bookLines = new ArrayList<>();
-btnSpeak.setText("Iniciar leitura");
+btnSpeak.setText("Carregar livro");
 btnSpeak.setEnabled(false);
 btnAvancar.setEnabled(false);
 	btnRetroceder.setEnabled(false);
     isToSpeak=false;
 mTts = new TextToSpeech(this,this);
 bookRepo = new BookRepository(this);
-book=bookRepo.getAudioBookConverterById(Integer.parseInt(bookId));
+book=bookRepo.getBookById(Integer.parseInt(bookId));
 if(book!=null){
     atualLine=book.getMark();
-        book.setTextView(textView);
-    book.setButton(btnSpeak);
-    book.execute();
+        btnSpeak.setEnabled(true);
 }
 else{
     Toast.makeText(getApplicationContext(), "Desculpe, ocorreu um erro ao buscar este livro...", Toast.LENGTH_SHORT).show();
@@ -113,6 +109,14 @@ public void onStart() {
                       OnClickListener btnClickListener = new OnClickListener() {
             @Override
             public void onClick(View v) {
+                            if(bookLines.isEmpty()){
+                            btnSpeak.setEnabled(false);
+    BookFormater bFormater = new BookFormater();
+    bFormater.execute(book.getContent());
+    
+    return;
+                            }
+
                     if(isToSpeak){
                     isToSpeak=false;
                     btnSpeak.setText("Continuar leitura");
@@ -168,7 +172,13 @@ private void closeResourceAndSaveData(){
 public static void setFormatedBookLines(ArrayList<String> formatedLines){
     bookLines=formatedLines;
 }
-        
+ public static void setProgressMessage(String msg){
+textView.setText(msg);
+ }       
+ public static void changeBtnSpeakStatus(){
+     btnSpeak.setText("Iniciar leitura");
+btnSpeak.setEnabled(true);
+ }
 public void toSpeak(int i, int flag){
     String code="book_line#"+i;
     if(isToSpeak){

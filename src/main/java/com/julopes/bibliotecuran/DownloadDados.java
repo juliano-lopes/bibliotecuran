@@ -28,7 +28,7 @@ import android.webkit.WebView;
 
 import android.widget.Toast;
 import android.content.Intent;
-import com.julopes.bibliotecuran.AudioBookConverter;
+import com.julopes.bibliotecuran.Book;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
 import java.util.List;
@@ -105,14 +105,12 @@ loadBook(data);
 	}
 public void loadBook(String data){
 BookRepository bookRepo = new BookRepository(context);
-AudioBookConverter audioBook = new AudioBookConverter(book,data);
-String id = bookRepo.insert(audioBook);
+String id = bookRepo.insert(new Book(book,data));
 if(id.equals("-1")){
 	    Toast.makeText(context, "Desculpe, ocorreu um erro ao buscar este livro...", Toast.LENGTH_SHORT).show();
 		return;
 }
 Intent intent = new Intent(context, SpeakOutActivity.class);
-intent.putExtra("bookName", book);
 intent.putExtra("insertion", id);
 context.startActivity(intent);
 }
@@ -130,10 +128,9 @@ msg="Buscando livro...";
 Toast.makeText(context.getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
 BookRepository bookRepo = new BookRepository(context);
 if(bookRepo.isBookSavedByName(bookName)){
-AudioBookConverter audioBook = bookRepo.getAudioBookConverterByName(bookName);
+Book searchedBook = bookRepo.getBookByName(bookName);
 Intent intent = new Intent(context, SpeakOutActivity.class);
-intent.putExtra("bookName", bookName);
-intent.putExtra("insertion", String.valueOf(audioBook.getId()));
+intent.putExtra("insertion", String.valueOf(searchedBook.getId()));
 context.startActivity(intent);
 }else{
 String newUrl = "http://julianolopes.com.br/api_android/android_request.php?id=com.julopes.bibliotecuran&book="+bookName;
