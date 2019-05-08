@@ -59,6 +59,9 @@ import android.speech.tts.*;
 import android.content.pm.PackageManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.app.ActivityCompat;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 public class SpeakOutActivity extends Activity implements TextToSpeech.OnInitListener {
 private boolean isToSpeak;
 	private static final String TALKBACK_SETTING_ACTIVITY_NAME = "com.android.talkback.TalkBackPreferencesActivity";
@@ -68,11 +71,12 @@ private boolean isToSpeak;
 	private static Button btnSpeak;
 	    private Button btnAvancar;
 			    private Button btnRetroceder;
+                private Button btnVoz;
 private static List<String> bookLines;
 private int atualLine;
 private Book book;
 private BookRepository bookRepo;
-   
+   private int voz;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,7 +85,7 @@ textView  = (TextView) findViewById(R.id.text_view);
 		btnSpeak = (Button) findViewById(R.id.btn_speak);
         btnAvancar = (Button) findViewById(R.id.btn_avancar);
 		btnRetroceder = (Button) findViewById(R.id.btn_retroceder);
-
+btnVoz = (Button) findViewById(R.id.btn_voz);
 Intent intent = getIntent();
 Bundle extras = intent.getExtras();
 String bookId = extras.getString("insertion");
@@ -103,6 +107,21 @@ else{
 }
 
 }
+private Voice getTtsVoice(int voz){
+     int i=0;
+     for(Iterator<Voice> iter = mTts.getVoices().iterator(); 
+iter.hasNext();) {
+Voice voice = iter.next();
+//msg+="Voice "+i+" : "+voice.toString()+"\n";
+if(i==voz){
+return voice;
+
+}
+i++;
+
+}
+return null;
+}
 @Override
 public void onStart() {
 		super.onStart();
@@ -113,7 +132,6 @@ public void onStart() {
                             btnSpeak.setEnabled(false);
     BookFormater bFormater = new BookFormater();
     bFormater.execute(book.getContent());
-    
     return;
                             }
 
@@ -149,6 +167,21 @@ toSpeak(atualLine,TextToSpeech.QUEUE_ADD);
                                                 toSpeak(atualLine,TextToSpeech.QUEUE_ADD);
             }
         });
+        		        btnVoz.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+Voice voice = getTtsVoice(voz);
+if(voice!=null)
+mTts.setVoice(voice);
+			btnVoz.setText("Voz "+(voz+1)+": "+mTts.getVoice().getName());
+            if((voz>=0)&&(voz<mTts.getVoices().size()-1))
+            voz++;
+            else
+            voz=0;
+                        
+            }
+        });
+
 }
 @Override
 protected void onStop(){
