@@ -17,12 +17,7 @@ import android.content.Context;
   import android.os.PowerManager;
  import android.os.PowerManager.WakeLock;
  import android.view.MotionEvent;
- 
-
-
-
-
-import android.accessibilityservice.AccessibilityServiceInfo;
+ import android.accessibilityservice.AccessibilityServiceInfo;
 import android.os.Build;
 
 import android.text.TextUtils;
@@ -62,44 +57,52 @@ import android.support.v4.app.ActivityCompat;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import android.text.Html;
 public class SpeakOutActivity extends Activity implements TextToSpeech.OnInitListener {
 private boolean isToSpeak;
 	private static final String TALKBACK_SETTING_ACTIVITY_NAME = "com.android.talkback.TalkBackPreferencesActivity";
         private static TextToSpeech mTts;
   private int mStatus = 0;
-    private static TextView textView;
+    private TextView textViewContent;
+    private TextView textViewTitle;
 	private static Button btnSpeak;
 	    private Button btnAvancar;
 			    private Button btnRetroceder;
-                private Button btnVoz;
-private static List<String> bookLines;
-private int atualLine;
-private Book book;
+                private static Button btnVoz;
+                private static Button btnPage;
+                private EditText editPage;
+private static Book book;
 private BookRepository bookRepo;
    private int voz;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.speak_out_activity);
-textView  = (TextView) findViewById(R.id.text_view);
+textViewContent = (TextView) findViewById(R.id.content);
+textViewTitle = (TextView) findViewById(R.id.title);
 		btnSpeak = (Button) findViewById(R.id.btn_speak);
         btnAvancar = (Button) findViewById(R.id.btn_avancar);
 		btnRetroceder = (Button) findViewById(R.id.btn_retroceder);
 btnVoz = (Button) findViewById(R.id.btn_voz);
+btnPage = (Button) findViewById(R.id.btn_page);
+editPage = (EditText) findViewById(R.id.edit_page);
 Intent intent = getIntent();
 Bundle extras = intent.getExtras();
 String bookId = extras.getString("insertion");
-bookLines = new ArrayList<>();
 btnSpeak.setText("Carregar livro");
 btnSpeak.setEnabled(false);
 btnAvancar.setEnabled(false);
 	btnRetroceder.setEnabled(false);
+    btnVoz.setEnabled(false);
+    btnPage.setEnabled(false);
     isToSpeak=false;
 mTts = new TextToSpeech(this,this);
 bookRepo = new BookRepository(this);
 book=bookRepo.getBookById(Integer.parseInt(bookId));
 if(book!=null){
-    atualLine=book.getMark();
+    String title = book.getName().replace('-',' ');
+    textViewTitle.setText(Html.fromHtml("<h1>"+title+"</h1>"));
+    book.setCurrentLine(book.getMark());
         btnSpeak.setEnabled(true);
 }
 else{
@@ -128,43 +131,42 @@ public void onStart() {
                       OnClickListener btnClickListener = new OnClickListener() {
             @Override
             public void onClick(View v) {
-                            if(bookLines.isEmpty()){
+                            if(book.getLineQuantity()==0){
                             btnSpeak.setEnabled(false);
     BookFormater bFormater = new BookFormater();
     bFormater.execute(book.getContent());
     return;
                             }
-
                     if(isToSpeak){
                     isToSpeak=false;
                     btnSpeak.setText("Continuar leitura");
                     }
                                                           else{
-                    isToSpeak=true;
+                                                              if(book.isEndOfBook())
+                    book.setCurrentLine(0);
+                                        isToSpeak=true;
                     btnSpeak.setText("Pausar leitura");
                                                           }
                     btnAvancar.setEnabled(true);
 	btnRetroceder.setEnabled(true);
-                    toSpeak(atualLine,TextToSpeech.QUEUE_ADD);
+                    toSpeak(book.getCurrentLine(),TextToSpeech.QUEUE_ADD);
 			}
 };
         btnSpeak.setOnClickListener(btnClickListener);
 		btnAvancar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-if(atualLine<(bookLines.size()-2))
-atualLine++;
+book.nextLine();
 toNotSpeak();
-toSpeak(atualLine,TextToSpeech.QUEUE_ADD);
+toSpeak(book.getCurrentLine(),TextToSpeech.QUEUE_ADD);
 		}
         });
 		        btnRetroceder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-												if(atualLine>1)
-                                                atualLine-=2;
+												book.priorLine();
                                                 toNotSpeak();
-                                                toSpeak(atualLine,TextToSpeech.QUEUE_ADD);
+                                                toSpeak(book.getCurrentLine(),TextToSpeech.QUEUE_ADD);
             }
         });
         		        btnVoz.setOnClickListener(new View.OnClickListener() {
@@ -181,7 +183,19 @@ mTts.setVoice(voice);
                         
             }
         });
-
+btnPage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+if(!editPage.getText().toString().equals("")){
+    int page = Integer.parseInt(editPage.getText().toString());
+            if(page>0 && page<=book.getPageQuantity()){
+book.setCurrentLine(book.goToPage(page));
+toNotSpeak();
+toSpeak(book.getCurrentLine(),TextToSpeech.QUEUE_ADD);
+            }
+            }
+            }
+        });
 }
 @Override
 protected void onStop(){
@@ -197,26 +211,34 @@ private void closeResourceAndSaveData(){
           mTts.stop();
         mTts.shutdown();
   if(book!=null){
-      book.setMark(atualLine);
+      book.setMark(book.getCurrentLine());
   bookRepo.saveMark(book);
   }
   
 }
 public static void setFormatedBookLines(ArrayList<String> formatedLines){
-    bookLines=formatedLines;
+    book.setBookLines(formatedLines);
 }
- public static void setProgressMessage(String msg){
-textView.setText(msg);
- }       
  public static void changeBtnSpeakStatus(){
      btnSpeak.setText("Iniciar leitura");
 btnSpeak.setEnabled(true);
+btnPage.setEnabled(true);
+btnVoz.setEnabled(true);
  }
-public void toSpeak(int i, int flag){
+private void setReadingProgress(){
+    String content = "<h2>Linha "+book.getCurrentLine()+" - pagina "+book.getCurrentPage()+" de "+book.getPageQuantity()+"</h2><p align='center'>"+book.getLine(book.getCurrentLine())+"</p>";
+    textViewContent.setText(Html.fromHtml(content));
+}
+private  void endOfBook(){
+    if(book.isEndOfBook()){
+mTts.speak("Fim do livro",TextToSpeech.QUEUE_ADD,null,"end_of_book#-1");
+btnSpeak.setText("Iniciar leitura");
+    }
+}
+private void toSpeak(int i, int flag){
     String code="book_line#"+i;
     if(isToSpeak){
-       if((i>=0)&&(i<bookLines.size()))
-    mTts.speak(bookLines.get(i),flag,null,code);
+           mTts.speak(book.getLine(i),flag,null,code);
     }
     else{
         toNotSpeak();
@@ -228,7 +250,7 @@ public void toSpeak(int i, int flag){
     private void doSilence(){
 mTts.playSilentUtterance(0500,TextToSpeech.QUEUE_FLUSH,"code_to_not_speak#-2");
     }
-    public void setTts(TextToSpeech tts) {
+    private void setTts(TextToSpeech tts) {
         this.mTts = tts;
         if( Build.VERSION.SDK_INT  >= 15 ){
             this.mTts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
@@ -240,14 +262,15 @@ switch(index){
 case -1:
 break;
 case -2:
-toSpeak(atualLine, TextToSpeech.QUEUE_ADD);
+toSpeak(book.getCurrentLine(), TextToSpeech.QUEUE_ADD);
 break;
 default:
-atualLine=++index;
- toSpeak(atualLine,TextToSpeech.QUEUE_ADD);
- break;
+//atualLine=++index;
+ toSpeak(book.nextLine(),TextToSpeech.QUEUE_ADD);
+  break;
 }
-
+setReadingProgress();
+endOfBook();
 }
                 @Override
                 public void onError(String utteranceId){

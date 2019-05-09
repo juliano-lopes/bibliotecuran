@@ -115,6 +115,7 @@ intent.putExtra("insertion", id);
 context.startActivity(intent);
 }
 public void loadList(String data){
+	data = data.replace('-',' ');
 String[] listBooks = data.split(";");
 ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, listBooks);
 listView.setAdapter(adapter);
@@ -123,7 +124,7 @@ listView.setOnItemClickListener(new OnItemClickListener() {
 public void onItemClick(AdapterView<?> parent, View view,
 int position, long id) {
 String bookName, msg;
-bookName = parent.getItemAtPosition(position).toString();
+bookName = parent.getItemAtPosition(position).toString().replace(' ','-');
 msg="Buscando livro...";
 Toast.makeText(context.getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
 BookRepository bookRepo = new BookRepository(context);
