@@ -5,6 +5,7 @@ package com.julopes.bibliotecuran;
 
 public class Book {
 private static final int MAX_LINE_PER_PAGE=30;
+private static final int PAGE_MIN_QUANTITY=1;
 private long id;
 private String name;
 private String content;
@@ -76,10 +77,15 @@ public int getPageQuantity(){
     return bookLines.size()/MAX_LINE_PER_PAGE+1;
 }
 public int getCurrentPage(){
+int currentPage;
 if(currentLine%MAX_LINE_PER_PAGE==0)
-return currentLine/MAX_LINE_PER_PAGE;
+currentPage=currentLine/MAX_LINE_PER_PAGE;
 else
-return currentLine/MAX_LINE_PER_PAGE+1;
+currentPage=currentLine/MAX_LINE_PER_PAGE+1;
+if(currentPage>PAGE_MIN_QUANTITY)
+return currentPage;
+else
+return PAGE_MIN_QUANTITY;
 }
 public int goToPage(int pageNumber){
     currentLine = (pageNumber-1)*30+1;

@@ -100,7 +100,7 @@ mTts = new TextToSpeech(this,this);
 bookRepo = new BookRepository(this);
 book=bookRepo.getBookById(Integer.parseInt(bookId));
 if(book!=null){
-    String title = book.getName().replace('-',' ');
+    String title = book.getName();
     textViewTitle.setText(Html.fromHtml("<h1>"+title+"</h1>"));
     book.setCurrentLine(book.getMark());
         btnSpeak.setEnabled(true);
@@ -226,7 +226,7 @@ btnPage.setEnabled(true);
 btnVoz.setEnabled(true);
  }
 private void setReadingProgress(){
-    String content = "<h2>Linha "+book.getCurrentLine()+" - pagina "+book.getCurrentPage()+" de "+book.getPageQuantity()+"</h2><p align='center'>"+book.getLine(book.getCurrentLine())+"</p>";
+    String content = "<h2>Linha "+(book.getCurrentLine()+1)+" - pagina "+book.getCurrentPage()+" de "+book.getPageQuantity()+"</h2><p align='center'>"+book.getLine(book.getCurrentLine())+"</p>";
     textViewContent.setText(Html.fromHtml(content));
 }
 private  void endOfBook(){

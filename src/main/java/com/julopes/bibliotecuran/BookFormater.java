@@ -7,12 +7,12 @@ import android.widget.Button;
 import android.widget.TextView;
 
 public class BookFormater extends AsyncTask<String, String, ArrayList<String>>{
-    private static final int LINE_LENGTH=30;
-private List<String> getWords(String bookContent){
+    private static final int LINE_MIN_LENGTH =30;
+	private List<String> getWords(String bookContent){
 return Arrays.asList(bookContent.split(" "));
 }
 private boolean isPontuation(char character){
-	return ((character=='.') || (character=='!') || (character=='?'));
+	return ((character=='.') || (character=='!') || (character=='?') || (character==';'));
 	}
 
 private String getLineWithoutSomeCharacters(String line){
@@ -24,12 +24,11 @@ return line;
 
 @Override
 protected ArrayList<String> doInBackground(String... data) {
-String line="";
-int i=0;
+	String line="";
 ArrayList<String> formedLines = new ArrayList<>();
 String bookContent=data[0];
 for(String word : getWords(bookContent)){
-if(line.length()<LINE_LENGTH){
+if(line.length()<=LINE_MIN_LENGTH){
 line+=word+" ";
 }
 else{
@@ -39,16 +38,10 @@ else{
 line = getLineWithoutSomeCharacters(line);
 formedLines.add(line);
 line="";
-
 }
 }
-i++;
-//int progress =(int) ((i*100)/getWords(bookContent).size());
-//publishProgress(progress+"%");
 }
-
 return formedLines;
-
 }
 @Override
 protected void onProgressUpdate(String... values) {
