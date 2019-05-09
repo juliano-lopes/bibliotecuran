@@ -8,40 +8,62 @@ import android.widget.TextView;
 
 public class BookFormater extends AsyncTask<String, String, ArrayList<String>>{
     private static final int LINE_MIN_LENGTH =30;
-	private List<String> getWords(String bookContent){
-return Arrays.asList(bookContent.split(" "));
-}
-private boolean isPontuation(char character){
-	return ((character=='.') || (character=='!') || (character=='?') || (character==';'));
-	}
 
-private String getLineWithoutSomeCharacters(String line){
-		line = line.replace('_', ' ');
-	line = line.replace('\n', ' ');
-	line = line.replace('=', ' ');
-return line;
+private String getContentWithoutSomeCharacters(String content){
+		content = content.replace('_', ' ');
+	content = content.replace('\n', ' ');
+	content = content.replace('=', ' ');
+return content;
+}
+
+private ArrayList<String>   getFormatedContent(String content){
+int mark;
+String line;
+ArrayList<String> formedLines = new ArrayList<>();
+content=getContentWithoutSomeCharacters(content);
+while(true){
+if(content.indexOf(".")>-1){
+mark = content.indexOf(".")+1;
+line=content.substring(0,mark);
+if(line.indexOf("!")>-1){
+mark = line.indexOf(".")+1;
+line=content.substring(0,mark);
+}
+if(line.indexOf("?")>-1){
+	mark = content.indexOf("?")+1;
+line=content.substring(0,mark);
+}
+content = content.substring(mark);
+formedLines.add(line);
+}
+else if(content.indexOf("!")>-1){
+mark=content.indexOf("!")+1;
+line=content.substring(0,mark);
+if(line.indexOf("?")>-1){
+	mark=line.indexOf("?")+1;
+	line=line.substring(0,mark);
+}
+content = content.substring(mark);
+formedLines.add(line);
+}
+else if(content.indexOf("?")>-1){
+	mark=content.indexOf("?")+1;
+	line=content.substring(0,mark);
+content = content.substring(mark);
+formedLines.add(line);
+}
+else{
+formedLines.add(content);
+break;
+}
+}
+return formedLines;
 }
 
 @Override
 protected ArrayList<String> doInBackground(String... data) {
-	String line="";
-ArrayList<String> formedLines = new ArrayList<>();
-String bookContent=data[0];
-for(String word : getWords(bookContent)){
-if(line.length()<=LINE_MIN_LENGTH){
-line+=word+" ";
-}
-else{
-	line+=word+" ";
-	char lastCharacter = word.charAt(word.length()-1);
-	if((isPontuation(lastCharacter)) && (word.length()>3)){
-line = getLineWithoutSomeCharacters(line);
-formedLines.add(line);
-line="";
-}
-}
-}
-return formedLines;
+		String bookContent=data[0];
+return getFormatedContent(bookContent);
 }
 @Override
 protected void onProgressUpdate(String... values) {
@@ -49,12 +71,6 @@ protected void onProgressUpdate(String... values) {
 protected void onPostExecute(ArrayList<String> result) {
 SpeakOutActivity.setFormatedBookLines(result);
 SpeakOutActivity.changeBtnSpeakStatus();
-/*
-Intent intent = new Intent(context, SpeakOutActivity.class);
-intent.putExtra("bookName", bookName);
-intent.putStringArrayListExtra("book", result);
-context.startActivity(intent);
-*/
 }
 
 

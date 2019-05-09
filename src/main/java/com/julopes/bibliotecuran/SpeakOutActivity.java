@@ -100,10 +100,11 @@ mTts = new TextToSpeech(this,this);
 bookRepo = new BookRepository(this);
 book=bookRepo.getBookById(Integer.parseInt(bookId));
 if(book!=null){
-    String title = book.getName();
+    String title = book.getName().replace('-',' ');
     textViewTitle.setText(Html.fromHtml("<h1>"+title+"</h1>"));
     book.setCurrentLine(book.getMark());
         btnSpeak.setEnabled(true);
+
 }
 else{
     Toast.makeText(getApplicationContext(), "Desculpe, ocorreu um erro ao buscar este livro...", Toast.LENGTH_SHORT).show();
@@ -135,6 +136,7 @@ public void onStart() {
                             btnSpeak.setEnabled(false);
     BookFormater bFormater = new BookFormater();
     bFormater.execute(book.getContent());
+    btnSpeak.setText("Carregando livro...");
     return;
                             }
                     if(isToSpeak){
