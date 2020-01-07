@@ -29,7 +29,9 @@ import android.util.Log;
 import android.content.pm.PackageManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.app.ActivityCompat;
-
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo; 
+import android.content.Context;
 public class MainActivity extends Activity {
 private ListView listView;
 private TextView titulo;
@@ -41,14 +43,36 @@ public void onCreate(Bundle savedInstanceState) {
         
 super.onCreate(savedInstanceState);
         
+if(isConnected(this)){
 setContentView(R.layout.main_listview_layout);
 titulo = (TextView) findViewById(R.id.titulo);
 descricao = (TextView) findViewById(R.id.descricao);
 listView = (ListView) findViewById(R.id.list_view);
-
-DownloadDados dd = new DownloadDados(this, listView);
-dd.execute();
+new DownloadDados(this, listView).execute();
 }
+else{
+	setContentView(R.layout.activity_main_without_internet);
+//Toast.makeText(this, "Ops! Estamos sem internet no momento...", Toast.LENGTH_SHORT).show();
+}	
+
+}
+private   boolean isConnected(Context cont){
+ ConnectivityManager conmag = (ConnectivityManager) cont.getSystemService(cont.CONNECTIVITY_SERVICE);
+
+ if ( conmag != null ) {
+  conmag.getActiveNetworkInfo();
+  //Verifica internet pela WIFI
+  if (conmag.getNetworkInfo(ConnectivityManager.TYPE_WIFI).isConnected()) {
+   return true;
+  }
+  //Verifica se tem internet móvel
+  if (conmag.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).isConnected()) {
+   return true;
+  }
+ }
+ return false;
+}
+
 
 @Override
 public void onStart() {
