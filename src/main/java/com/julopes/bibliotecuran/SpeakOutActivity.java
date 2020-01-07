@@ -200,18 +200,40 @@ toSpeak(book.getCurrentLine(),TextToSpeech.QUEUE_ADD);
         });
 }
 @Override
+protected void onResume(){
+    super.onResume();
+        if(book!=null)
+        book.setCurrentLine(book.getMark());
+}
+
+@Override
+protected void onPause(){
+    super.onPause();
+              mTts.stop();
+              isToSpeak=false;
+                    btnSpeak.setText("Continuar leitura");
+                    
+    closeResourceAndSaveData();
+}
+
+@Override
 protected void onStop(){
     super.onStop();
+              mTts.stop();
+              isToSpeak=false;
+                    btnSpeak.setText("Continuar leitura");
+                    
     closeResourceAndSaveData();
 }
 	@Override
     public void onDestroy() {
         super.onDestroy();
+                  mTts.stop();
+        mTts.shutdown();
+
 closeResourceAndSaveData();
   }
 private void closeResourceAndSaveData(){
-          mTts.stop();
-        mTts.shutdown();
   if(book!=null){
       book.setMark(book.getCurrentLine());
   bookRepo.saveMark(book);
